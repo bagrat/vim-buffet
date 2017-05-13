@@ -54,9 +54,18 @@ if !exists("g:workspace_modified_icon")
     let g:workspace_modified_icon = "+"
 endif
 
+if !exists("g:workspace_plus_icon")
+    let g:workspace_plus_icon = "+"
+endif
+
 command! WSNext :call workspace#next()
 command! WSPrev :call workspace#previous()
+command! WSTabNew :call workspace#newtab()
 command! -bang WSClose :call workspace#delete("<bang>")
+
+hi WorkspaceErrorText cterm=bold ctermbg=8 ctermfg=1
+exec "hi WorkspaceError cterm=NONE ctermbg=" . synIDattr(synIDtrans(hlID("WorkspaceErrorText")), 'fg') .
+                                  \ " ctermfg=" . synIDattr(synIDtrans(hlID("WorkspaceErrorText")), 'bg')
 
 hi! WorkspaceBufferCurrentDefault cterm=NONE ctermbg=2 ctermfg=8
 hi! WorkspaceBufferActiveDefault cterm=NONE ctermbg=10 ctermfg=2
