@@ -13,21 +13,33 @@ endif
 " People either use the defaults, make their own customization or guess what?
 " Powerline separators! So better to ease the users life and provide a switch
 " for that.
-if get(g:, "workspace_powerline_separators", 1)  " TODO: change default to 0
+if get(g:, "workspace_powerline_separators", 0)  " TODO: change default to 0
+    let g:workspace_powerline_separators = 1
     let g:workspace_separator = "\ue0b0"
     let g:workspace_subseparator = "\ue0b1"
 else
-    let g:workspace_separator = ""
-    let g:workspace_subseparator = ""
+    let g:workspace_powerline_separators = 0
+    let g:workspace_separator = get(g:, "workspace_separator", "")
+    let g:workspace_subseparator = get(g:, "workspace_subseparator", "|")
 endif
 
 " If we find devicons installed, then the user would like some nice icon stuff
-if get(g:, "webdevicons_enable", 0)
-    let g:workspace_use_devicons = 1
+if get(g:, "workspace_use_devicons", 1)
+    if !exists("*WebDevIconsGetFileTypeSymbol")
+        let g:workspace_use_devicons = 0
+    else
+        let g:workspace_use_devicons = 1
+    endif
+else
+    let g:workspace_use_devicons = 0
 endif
 
 if !exists("g:workspace_hide_buffers")
     let g:workspace_hide_buffers = []
+endif
+
+if !exists("g:workspace_tab_icon")
+    let g:workspace_tab_icon = "#"
 endif
 
 if !exists("g:workspace_hide_ft_buffers")
@@ -38,11 +50,11 @@ if !exists("g:workspace_new_buffer_name")
     let g:workspace_new_buffer_name = "*"
 endif
 
-hi! WorkspaceBufferCurrentDefault cterm=NONE ctermbg=3 ctermfg=8
-hi! WorkspaceBufferActiveDefault cterm=NONE ctermbg=10 ctermfg=3
+hi! WorkspaceBufferCurrentDefault cterm=NONE ctermbg=2 ctermfg=8
+hi! WorkspaceBufferActiveDefault cterm=NONE ctermbg=10 ctermfg=2
 hi! WorkspaceBufferHiddenDefault cterm=NONE ctermbg=10 ctermfg=8
-hi! WorkspaceTabCurrentDefault cterm=NONE ctermbg=2 ctermfg=8
-hi! WorkspaceTabHiddenDefault cterm=NONE ctermbg=2 ctermfg=8
+hi! WorkspaceTabCurrentDefault cterm=NONE ctermbg=4 ctermfg=8
+hi! WorkspaceTabHiddenDefault cterm=NONE ctermbg=4 ctermfg=8
 hi! WorkspaceFillDefault cterm=NONE ctermbg=10 ctermfg=10
 hi! WorkspaceIconDefault cterm=NONE ctermbg=5 ctermfg=10
 
@@ -57,6 +69,10 @@ hi link WorkspaceIcon WorkspaceIconDefault
 function! s:SetColors()
     if exists("*g:WorkspaceSetCustomColors")
         call g:WorkspaceSetCustomColors()
+    endif
+
+    if !g:workspace_powerline_separators
+        return
     endif
 
     let hi_groups = [

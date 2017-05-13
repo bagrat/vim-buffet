@@ -109,6 +109,10 @@ function! s:GetSeparator(left, right)
         let sep = g:workspace_subseparator
     endif
 
+    if !g:workspace_powerline_separators
+        return sep
+    endif
+
     let hi_name = "Workspace" . left_hi . right_hi
 
     return "%#" . hi_name . "#" . sep
@@ -122,7 +126,12 @@ function! s:RenderBuffer(prev_tab, prev, this, next, next_tab)
     let global_next = a:this.is_last ? a:next_tab : a:next
     let right_sep = s:GetSeparator(a:this, global_next)
 
-    let buffer_label = color . " " . a:this.name . " "
+    let name = a:this.name
+    if g:workspace_use_devicons
+        let name = WebDevIconsGetFileTypeSymbol(name) . name
+    endif
+
+    let buffer_label = color . " " . name . " "
     let bresult = buffer_label . right_sep
 
     return bresult
@@ -147,7 +156,7 @@ function! s:RenderTab(prev, this, next)
         let right_sep = s:GetSeparator(a:this, a:next)
     endif
 
-    let tab_label = color . " ". a:this.tabno . " "
+    let tab_label = color . " " . g:workspace_tab_icon . " "
     let tresult = tab_label . right_sep . buffer_result
 
     return tresult
