@@ -50,6 +50,14 @@ if !exists("g:workspace_new_buffer_name")
     let g:workspace_new_buffer_name = "*"
 endif
 
+if !exists("g:workspace_modified_icon")
+    let g:workspace_modified_icon = "+"
+endif
+
+command! WSNext :call workspace#next()
+command! WSPrev :call workspace#previous()
+command! -bang WSClose :call workspace#delete("<bang>")
+
 hi! WorkspaceBufferCurrentDefault cterm=NONE ctermbg=2 ctermfg=8
 hi! WorkspaceBufferActiveDefault cterm=NONE ctermbg=10 ctermfg=2
 hi! WorkspaceBufferHiddenDefault cterm=NONE ctermbg=10 ctermfg=8

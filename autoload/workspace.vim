@@ -131,7 +131,12 @@ function! s:RenderBuffer(prev_tab, prev, this, next, next_tab)
         let name = WebDevIconsGetFileTypeSymbol(name) . name
     endif
 
-    let buffer_label = color . " " . name . " "
+    let modified_icon = ""
+    if getbufvar(a:this.bufno, '&mod') && g:workspace_modified_icon != ""
+        let modified_icon = " " . g:workspace_modified_icon
+    endif
+
+    let buffer_label = color . " " . name . modified_icon . " "
     let bresult = buffer_label . right_sep
 
     return bresult
@@ -185,6 +190,7 @@ function! workspace#next()
     endif
 
     let hit_current = 0
+    let next_buf = -1
     for wbuf in wbuffers
         if hit_current == 1
             let next_buf = wbuf.bufno
@@ -199,7 +205,9 @@ function! workspace#next()
         let next_buf = wbuffers[0].bufno
     endif
 
-    exec "buffer " . next_buf
+    if next_buf > 0
+        exec "silent buffer " . next_buf
+    endif 
 endfunction
 
 
@@ -223,22 +231,41 @@ function! workspace#previous()
         let last_seen = wbuffers[-1].bufno
     endif
 
-    exec "buffer " . last_seen
+    exec "silent buffer " . last_seen
 endfunction
 
 " TODO: Add bang behind a command
-function! workspace#delete()
+function! workspace#delete(bang)
     let wbuffers = s:GetBuffers()
     
-    let this = winbufnr(0)
+    let this = -1
+    for wbuf in wbuffers
+        if wbuf.is_current
+            let this = wbuf.bufno
+            break
+        endif
+    endfor
 
-    if len(wbuffers) == 1
-        exec "enew"
-        exec this . "bwipe"
+    if this == -1
         return
     endif
+
+    let that = -1
+
+    if len(wbuffers) == 1
+        exec "silent enew"
+        let that = winbufnr(0)
+    else
+        call workspace#next()
+    endif
      
-    call workspace#next()
-    exec this . "bwipe"
+    try
+        exec "silent " . this . "bwipe" . a:bang
+    catch /^Vim\%((\a\+)\)\=:E89/
+        if that > 0
+            exec "silent " . that . "bwipe"
+        endif
+        echom "This file has unsaved changes. If you are sure, use force close (:WSClose!)"
+    endtry
     call workspace#previous()
 endfunction
