@@ -26,11 +26,10 @@ function! s:GetBuffers()
         let buf = {}
         let buf.type = 'Buffer'
         let buf.bufno = bufno
-        let buf.is_first = 0
-        let buf.is_last = 0
         let buf.is_active = (bufwinnr(bufno) > 0)
         let buf.is_current = (bufno == current_buffer)
         let buf.name = fnamemodify(bufname(bufno), ':t')
+        let buf.label = -1
 
         if buf.is_current
             let buf.state = "Current"
@@ -47,10 +46,31 @@ function! s:GetBuffers()
         call add(filtered_buffers, buf)
     endfor
 
-    let filtered_buffers[0].is_first = 1
-    let filtered_buffers[-1].is_last = 1
-
     return filtered_buffers
+endfunction
+
+function! s:GetRightTruncBuffer(count)
+    let buf = {}
+    let buf.type = 'Buffer'
+    let buf.bufno = -1
+    let buf.is_active = 0
+    let buf.is_current = 0
+    let buf.state = "Trunc"
+    let buf.label = a:count . " " . g:workspace_right_trunc_icon
+
+    return buf
+endfunction
+
+function! s:GetLeftTruncBuffer(count)
+    let buf = {}
+    let buf.type = 'Buffer'
+    let buf.bufno = -1
+    let buf.is_active = 0
+    let buf.is_current = 0
+    let buf.state = "Trunc"
+    let buf.label = g:workspace_left_trunc_icon . " " . a:count
+
+    return buf
 endfunction
 
 function! s:GetTabs()
@@ -118,16 +138,15 @@ function! s:GetSeparator(left, right)
     return "%#" . hi_name . "#" . sep
 endfunction
 
-function! s:RenderBuffer(prev_tab, prev, this, next, next_tab, label)
+function! s:RenderBuffer(prev, this, next)
     let bresult = ""
 
     let color = s:GetHighlight(a:this, 1)
 
-    let global_next = a:this.is_last ? a:next_tab : a:next
-    let right_sep = s:GetSeparator(a:this, global_next)
+    let right_sep = s:GetSeparator(a:this, a:next)
 
-    let label = a:label
-    if !label
+    let label = a:this.label
+    if label == -1
         let name = a:this.name
         if g:workspace_use_devicons
             let name = WebDevIconsGetFileTypeSymbol(name) . name
@@ -157,33 +176,114 @@ function! s:StrLen(string)
     return length
 endfunction
 
-let s:last_left = 0
-let s:last_right = 0
-let s:last_current = 0
-function! s:RenderTab(prev, this, next, tabs_count)
+function! s:BufferValueFits(bvalue, lvalue, tab_count)
+    let sep_width = s:StrLen(g:workspace_separator)
+    let subsep_width = s:StrLen(g:workspace_subseparator)
+    let max_sep_width = max([sep_width, subsep_width])
+
+    let tab_icon_width = s:StrLen(g:workspace_tab_icon)
+    let tab_width = 1 + tab_icon_width + 1 + max_sep_width
+
+    let ltrunc_icon_width = s:StrLen(g:workspace_left_trunc_icon)
+    let rtrunc_icon_width = s:StrLen(g:workspace_right_trunc_icon)
+    let max_trunc_icon_width = max([ltrunc_icon_width, rtrunc_icon_width])
+    let trunc_width = 2 * (1 + max_trunc_icon_width + 1 + 2 + 1 + max_sep_width)
+
+    let value_width = s:StrLen(a:bvalue)
+    let line_width = s:StrLen(a:lvalue)
+
+    let tabline_width = value_width + line_width + a:tab_count * tab_width + trunc_width
+    
+    return tabline_width < &columns
+endfunction
+
+function! s:ChopLeft(buffers, line)
+    let chopped = a:buffers[0]
+    let chopped_width = len(chopped[3])
+    let buffers = a:buffers[1:]
+    let line = a:line[chopped_width:]
+
+    return [buffers, line]
+endfunction
+
+function! s:RenderTab(prev, this, next, tab_count)
     let color = s:GetHighlight(a:this, 1)
     let tab_label = color . " " . g:workspace_tab_icon . " "
 
-    let buffer_result = ""
+    let buffer_line = ""
     if a:this.is_current
         let wbuffers = s:GetBuffers()
         let right_sep = s:GetSeparator(a:this, wbuffers[0])
 
+        let fitting_buffers = []
+        let current_index = -1
+        let left_count = 0
+        let left_chopped_count = 0
+        let right_count = 0
         for wi in range(0, len(wbuffers) - 1)
             let prev_buffer = wi > 0 ? wbuffers[wi - 1] : 0
             let this_buffer = wbuffers[wi]
-            let next_buffer = wi < len(wbuffers) - 1 ? wbuffers[wi + 1] : 0
+            let next_buffer = wi < len(wbuffers) - 1 ? wbuffers[wi + 1] : a:next
 
-            let bresult = s:RenderBuffer(a:this, prev_buffer, this_buffer, next_buffer, a:next, 0)
+            if this_buffer.is_current && current_index == -1
+                let current_index = wi
+            endif
 
-            let buffer_result = buffer_result . bresult
+            let left_count += current_index == -1 ? 1 : 0
+
+            let buffer_value = s:RenderBuffer(prev_buffer, this_buffer, next_buffer)
+
+            let done_drawing = 0
+            while !s:BufferValueFits(buffer_value, buffer_line, a:tab_count) && len(fitting_buffers)
+                if left_count < right_count
+                    let done_drawing = 1
+                    break
+                endif
+                let chop = s:ChopLeft(fitting_buffers, buffer_line)
+                let fitting_buffers = chop[0]
+                let buffer_line = chop[1]
+                let left_chopped_count += 1
+                let left_count -= 1
+            endwhile
+
+            if done_drawing
+                break
+            endif
+
+            " if !s:BufferValueFits(buffer_value, buffer_line, a:tab_count)
+            "     continue
+            " endif
+
+            call add(fitting_buffers, [prev_buffer, this_buffer, next_buffer, buffer_value])
+            let buffer_line = buffer_line . buffer_value
+            let right_count += current_index > -1 && current_index != wi ? 1 : 0
+        endfor
+
+        let right_chopped_count = len(wbuffers) - (left_chopped_count + left_count + right_count + 1)
+        
+        if left_chopped_count > 0
+            let left_trunc = [0, s:GetLeftTruncBuffer(left_chopped_count), fitting_buffers[0][1]]
+            let fitting_buffers[0][0] = left_trunc[1]
+            let fitting_buffers = [left_trunc] + fitting_buffers
+        endif
+
+        if right_chopped_count > 0
+            let right_trunc = [fitting_buffers[-1][1], s:GetRightTruncBuffer(right_chopped_count), a:next]
+            let fitting_buffers[-1][2] = right_trunc[1]
+            let fitting_buffers = fitting_buffers + [right_trunc]
+        endif
+
+        let buffer_line = ""
+        for bufs in fitting_buffers
+            let buffer_value = s:RenderBuffer(bufs[0], bufs[1], bufs[2])
+            let buffer_line = buffer_line . buffer_value
         endfor
     else
         let right_sep = s:GetSeparator(a:this, a:next)
     endif
 
     let tab_label = color . " " . g:workspace_tab_icon . " "
-    let tresult = tab_label . right_sep . buffer_result
+    let tresult = tab_label . right_sep . buffer_line
 
     return tresult
 endfunction

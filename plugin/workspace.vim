@@ -54,8 +54,12 @@ if !exists("g:workspace_modified_icon")
     let g:workspace_modified_icon = "+"
 endif
 
-if !exists("g:workspace_plus_icon")
-    let g:workspace_plus_icon = "+"
+if !exists("g:workspace_left_trunc_icon")
+    let g:workspace_left_trunc_icon = "<"
+endif
+
+if !exists("g:workspace_right_trunc_icon")
+    let g:workspace_right_trunc_icon = ">"
 endif
 
 command! WSNext :call workspace#next()
@@ -70,6 +74,7 @@ exec "hi WorkspaceError cterm=NONE ctermbg=" . synIDattr(synIDtrans(hlID("Worksp
 hi! WorkspaceBufferCurrentDefault cterm=NONE ctermbg=2 ctermfg=8
 hi! WorkspaceBufferActiveDefault cterm=NONE ctermbg=10 ctermfg=2
 hi! WorkspaceBufferHiddenDefault cterm=NONE ctermbg=10 ctermfg=8
+hi! WorkspaceBufferTruncDefault cterm=bold ctermbg=10 ctermfg=8
 hi! WorkspaceTabCurrentDefault cterm=NONE ctermbg=4 ctermfg=8
 hi! WorkspaceTabHiddenDefault cterm=NONE ctermbg=4 ctermfg=8
 hi! WorkspaceFillDefault cterm=NONE ctermbg=10 ctermfg=10
@@ -78,6 +83,7 @@ hi! WorkspaceIconDefault cterm=NONE ctermbg=5 ctermfg=10
 hi link WorkspaceBufferCurrent WorkspaceBufferCurrentDefault
 hi link WorkspaceBufferActive WorkspaceBufferActiveDefault
 hi link WorkspaceBufferHidden WorkspaceBufferHiddenDefault
+hi link WorkspaceBufferTrunc WorkspaceBufferTruncDefault
 hi link WorkspaceTabCurrent WorkspaceTabCurrentDefault
 hi link WorkspaceTabHidden WorkspaceTabHiddenDefault
 hi link WorkspaceFill WorkspaceFillDefault
@@ -96,6 +102,7 @@ function! s:SetColors()
                 \   "BufferCurrent",
                 \   "BufferActive",
                 \   "BufferHidden",
+                \   "BufferTrunc",
                 \   "TabCurrent",
                 \   "TabHidden",
                 \   "Fill",
@@ -115,7 +122,7 @@ function! s:SetColors()
             else
                 let fg = left_fg
 
-                if left_hi == "BufferActive"
+                if left_hi == "BufferActive" || left_hi == "BufferTrunc"
                     let fg = synIDattr(synIDtrans(hlID("WorkspaceBufferHidden")), 'fg') 
                 endif
 
