@@ -168,33 +168,32 @@ endfunction
 
 function! s:StrLen(string)
     let visible = substitute(a:string, "%#[^#]\\+#", "", "g")
-    let unicodes = substitute(visible, '[\d0-\d127]', "", "g")
-    let dashes = substitute(unicodes, '[^\d0-\d127]', "-", "g")
-    let no_unicodes = substitute(visible, '[^\d0-\d127]', "", "g")
-    let length = len(no_unicodes) + len(dashes)
+    let visible_singles = substitute(visible, '[^\d0-\d127]', "-", "g")
 
-    return length
+    return len(visible_singles)
 endfunction
 
-function! s:BufferValueFits(bvalue, lvalue, tab_count, truncs)
+function! s:BufferValueFits(bvalue, lvalue, tab_count, ltc, rtc)
     let sep_width = s:StrLen(g:workspace_separator)
     let subsep_width = s:StrLen(g:workspace_subseparator)
     let max_sep_width = max([sep_width, subsep_width])
 
     let tab_icon_width = s:StrLen(g:workspace_tab_icon)
     let tab_width = 1 + tab_icon_width + 1 + max_sep_width
+    let tabs_width = a:tab_count * tab_width
 
     let ltrunc_icon_width = s:StrLen(g:workspace_left_trunc_icon)
+    let ltrunc_width = a:ltc == 0 ? 0 : (1 + ltrunc_icon_width + 1 + len(a:ltc) + 1 + max_sep_width)
     let rtrunc_icon_width = s:StrLen(g:workspace_right_trunc_icon)
-    let max_trunc_icon_width = max([ltrunc_icon_width, rtrunc_icon_width])
-    let trunc_width = a:truncs * (1 + max_trunc_icon_width + 1 + 2 + 1 + max_sep_width)
+    let rtrunc_width = a:rtc < 1 ? 0 : (1 + rtrunc_icon_width + 1 + len(a:rtc) + 1 + max_sep_width)
+    let trunc_width = ltrunc_width + rtrunc_width
 
     let value_width = s:StrLen(a:bvalue)
     let line_width = s:StrLen(a:lvalue)
 
-    let tabline_width = value_width + line_width + a:tab_count * tab_width + trunc_width
+    let tabline_width = value_width + line_width + trunc_width + tabs_width
     
-    return tabline_width < &columns
+    return tabline_width - 1 <= &columns
 endfunction
 
 function! s:ChopLeft(buffers, line)
@@ -241,12 +240,13 @@ function! s:RenderTab(prev, this, next, tab_count)
             endif
 
             let left_count += current_index == -1 ? 1 : 0
+            let right_chopped_count = buffers_count - (left_chopped_count + left_count + right_count + 1)
 
             let buffer_value = s:RenderBuffer(prev_buffer, this_buffer, next_buffer)
 
             let done_drawing = 0
-            let truncs_count = (left_chopped_count > 0 ? 1 : 0) + (right_chopped_count > 0 ? 1 : 0)
-            while !s:BufferValueFits(buffer_value, buffer_line, a:tab_count, truncs_count) && len(fitting_buffers)
+            let truncs_count = (left_chopped_count > 0 ? 1 : 0) + (right_chopped_count > 1 ? 1 : 0)
+            while !s:BufferValueFits(buffer_value, buffer_line, a:tab_count, left_chopped_count, right_chopped_count) && len(fitting_buffers)
                 if left_count < right_count
                     let done_drawing = 1
                     break
@@ -265,7 +265,6 @@ function! s:RenderTab(prev, this, next, tab_count)
             call add(fitting_buffers, [prev_buffer, this_buffer, next_buffer, buffer_value])
             let buffer_line = buffer_line . buffer_value
             let right_count += current_index > -1 && current_index != wi ? 1 : 0
-            let right_chopped_count = buffers_count - (left_chopped_count + left_count + right_count + 1)
         endfor
 
         let right_chopped_count = len(wbuffers) - (left_chopped_count + left_count + right_count + 1)
