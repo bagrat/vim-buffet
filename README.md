@@ -1,4 +1,4 @@
-# VimWorkspace - Manage your buffers and tabs with ease
+# VimWorkspace
 
 If you are an experienced Vim user, you might got tired of `bn/bp/ls/Ctrl-^`. If
 you are new to the Vim world, then welcome, and start by learning Vim's
@@ -6,15 +6,13 @@ notions of [buffers, windows](http://vimdoc.sourceforge.net/htmldoc/windows.html
 and [tabpages](http://vimdoc.sourceforge.net/htmldoc/tabpage.html).
 
 VimWorkspace brings the IDE-like tabs into Vim, for easy navigation, and a nice,
-customizable look.
-
-## Introduction
-
-VimWorkspace takes your buffers and tabs, and shows them combined in the
+customizable look. It takes your buffers and tabs, and shows them combined in the
 tabline. With this you always have your list of buffers visible, at the same
 time not losing visibility into tabs. Moreover, VimWorkspace provides handy
 commands to boost navigation as well as a list of options to customize how the
 tabline appears.
+
+## Introduction
 
 <h3 align="center">
     <img
@@ -23,7 +21,13 @@ tabline appears.
     />
 </h3>
 
-See the following sections for information about each of those.
+Take a look at the screenshot. The blue cuties are the tabpages. The tabpage
+that has the buffers list coming next, is the current tabpage. The gray items
+with names are the hidden/inactive buffers, and obviously, the green one is the
+current buffer. The gray items on both ends with the little arrows and numbers
+are the truncation indicators. If all the buffers do not fit the screen,
+VimWorkflow truncates the tabline, and shows the number of truncated buffers on
+both ends.
 
 ## Installation
 
@@ -53,7 +57,7 @@ also provides options to extend the list of buffers to be ignored.
   forcibly close the buffer, use `WSClose!`.
 * `WSTabNew` - create a new tab. This uses the current buffer to load into the
   new tab's window, to avoid having a new empty buffer created. This is
-  basically and equivalent of `tabedit <current-buffer>`.
+  basically an equivalent of `tabedit <current-buffer>`.
 * `WSBufOnly[!]` - close all the buffers but the current. If there is any buffer
   in the list that has unsaved changes, this command stops there and shows an
   error. To ignore any changes and forcibly close all buffers (except the
@@ -163,8 +167,8 @@ vimrc file, using `let <optiona-name> = <option-value>`:
 
 ### Colors
 
-Of course, you can customize the colors of your tabline, to make is awesome and
-yours. The following are the list of highlight groups, with self-explanatory
+Of course, you can customize the colors of your tabline, to make it awesome and
+yours. The following is the list of highlight groups, with self-explanatory
 names:
 
 * `WorkspaceBufferCurrent` - the current buffer.
@@ -193,7 +197,7 @@ cabbrev bonly WSBufOnly
 
 ### FAQ
 
-#### **How do I get the look like in the demo gif?**
+#### **How do I get the look like in the screenshot?**
 
 First you will need a patched font, extended with `powerline` and `font-awesome`
 symbols. Also, you will need the
