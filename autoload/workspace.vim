@@ -1,8 +1,11 @@
+let s:last_current = -1
+let s:no_current = 0
 function! s:GetBuffers()
     let last_buffer = bufnr('$')
     let filtered_buffers = []
     let current_buffer = winbufnr(0)
 
+    let s:no_current = 1
     for bufno in range(1, last_buffer)
         if !bufexists(bufno)
             continue
@@ -31,6 +34,8 @@ function! s:GetBuffers()
 
         if buf.is_current
             let buf.state = "Current"
+            let s:last_current = buf.bufno
+            let s:no_current = 0
         elseif buf.is_active
             let buf.state = "Active"
         else
@@ -229,8 +234,14 @@ function! s:RenderTab(prev, this, next, tab_count)
             let this_buffer = wbuffers[wi]
             let next_buffer = wi < len(wbuffers) - 1 ? wbuffers[wi + 1] : a:next
 
-            if this_buffer.is_current && current_index == -1
-                let current_index = wi
+            if s:no_current == 0
+                if this_buffer.is_current && current_index == -1
+                    let current_index = wi
+                endif
+            else
+                if this_buffer.bufno == s:last_current
+                    let current_index = wi
+                endif
             endif
 
             let left_count += current_index == -1 ? 1 : 0
