@@ -103,7 +103,8 @@ vimrc file, using `let <optiona-name> = <option-value>`:
   let g:workspace_subseparator = "|"
   ```
 
-* `g:workspace_use_devicons` - if set to `1` and [`vim-devicons`]() plugin is
+* `g:workspace_use_devicons` - if set to `1` and
+  [`vim-devicons`](https://github.com/ryanoasis/vim-devicons) plugin is
   installed, show file type icons for each buffer in the tabline. If the
   `vim-devicons` plugin is not present, the option will automatically be set to
   `0`.
@@ -155,7 +156,7 @@ vimrc file, using `let <optiona-name> = <option-value>`:
 
 ### Colors
 
-Of course you can customize the colors of your tabline, to make is awesome and
+Of course, you can customize the colors of your tabline, to make is awesome and
 yours. The following are the list of highlight groups, with self-explanatory
 names:
 
@@ -168,3 +169,35 @@ names:
 * `WorkspaceTabCurrent` - the current tab.
 * `WorkspaceTabHidden` - a non-current tab.
 * `WorkspaceFill` - the blank space left on the right of the tabline.
+
+## Recommendations and FAQ
+
+Here are some recommended mappings to boost your navigation experience:
+
+```
+noremap <Tab> :WSNext<CR>
+noremap <S-Tab> :WSPrev<CR>
+noremap <Leader><Tab> :WSClose<CR>
+noremap <Leader><S-Tab> :WSClose!<CR>
+noremap <C-t> :WSTabNew<CR>
+
+cabbrev bonly WSBufOnly
+```
+
+### FAQ
+
+#### **How do I get the look like in the demo gif?**
+
+First you will need a patched font, extended with `powerline` and `font-awesome`
+symbols. Also, you will need the
+[`vim-devicons`](https://github.com/ryanoasis/vim-devicons) installed, which
+also has great guides on how to patch fonts, as well as some pre-patched fonts.
+As soon as you have the patched font, setting the following options, will give
+you exactly the same tabline as you see in the demo gif:
+
+```
+let g:workspace_powerline_separators = 1
+let g:workspace_tab_icon = "\uf00a"
+let g:workspace_left_trunc_icon = "\uf0a8"
+let g:workspace_right_trunc_icon = "\uf0a9"
+```
