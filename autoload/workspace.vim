@@ -184,7 +184,7 @@ function! s:BufferValueFits(bvalue, lvalue, tab_count, ltc, rtc)
     let ltrunc_icon_width = s:StrLen(g:workspace_left_trunc_icon)
     let ltrunc_width = a:ltc == 0 ? 0 : (1 + ltrunc_icon_width + 1 + len(a:ltc) + 1 + max_sep_width)
     let rtrunc_icon_width = s:StrLen(g:workspace_right_trunc_icon)
-    let rtrunc_width = a:rtc < 1 ? 0 : (1 + rtrunc_icon_width + 1 + len(a:rtc) + 1 + max_sep_width)
+    let rtrunc_width = a:rtc < 2 ? 0 : (1 + rtrunc_icon_width + 1 + len(a:rtc) + 1 + max_sep_width)
     let trunc_width = ltrunc_width + rtrunc_width
 
     let value_width = s:StrLen(a:bvalue)
@@ -192,7 +192,7 @@ function! s:BufferValueFits(bvalue, lvalue, tab_count, ltc, rtc)
 
     let tabline_width = value_width + line_width + trunc_width + tabs_width
     
-    return tabline_width - 1 <= &columns
+    return tabline_width <= &columns
 endfunction
 
 function! s:ChopLeft(buffers, line)
@@ -234,15 +234,15 @@ function! s:RenderTab(prev, this, next, tab_count)
             let this_buffer = wbuffers[wi]
             let next_buffer = wi < len(wbuffers) - 1 ? wbuffers[wi + 1] : a:next
 
-            if s:no_current == 0
+            " if s:no_current == 0
                 if this_buffer.is_current && current_index == -1
                     let current_index = wi
                 endif
-            else
-                if this_buffer.bufno == s:last_current
-                    let current_index = wi
-                endif
-            endif
+            " else
+            "     if this_buffer.bufno == s:last_current
+            "         let current_index = wi
+            "     endif
+            " endif
 
             let left_count += current_index == -1 ? 1 : 0
             let right_chopped_count = buffers_count - (left_chopped_count + left_count + right_count + 1)
