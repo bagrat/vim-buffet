@@ -3,9 +3,6 @@ function! s:GetBuffers()
     let filtered_buffers = []
     let current_buffer = winbufnr(0)
 
-    let hide_buffers = get(g:, "workspace_hide_buffers", [])
-    let hide_ft_buffers = get(g:, "workspace_hide_ft_buffers", [])
-
     for bufno in range(1, last_buffer)
         if !bufexists(bufno)
             continue
@@ -15,11 +12,12 @@ function! s:GetBuffers()
             continue
         endif
 
-        if index(hide_buffers, bufname(bufno)) >= 0
+        let buffer_name = bufname(bufno)
+        if index(g:workspace_hide_buffers, buffer_name) >= 0
             continue
         endif
 
-        if index(hide_ft_buffers, getbufvar(bufno, '&filetype')) >= 0
+        if index(g:workspace_hide_ft_buffers, getbufvar(bufno, '&filetype')) >= 0
             continue
         endif
 
@@ -28,7 +26,7 @@ function! s:GetBuffers()
         let buf.bufno = bufno
         let buf.is_active = (bufwinnr(bufno) > 0)
         let buf.is_current = (bufno == current_buffer)
-        let buf.name = fnamemodify(bufname(bufno), ':t')
+        let buf.name = fnamemodify(buffer_name, ':t')
         let buf.label = -1
 
         if buf.is_current
@@ -75,13 +73,12 @@ endfunction
 
 function! s:GetTabs()
     let all_tabs = []
+    let last_tab = tabpagenr('$')
 
-    for tabno in range(1, tabpagenr('$'))
+    for tabno in range(1, last_tab)
         let tab = {}
         let tab.type = 'Tab'
         let tab.tabno = tabno
-        let tab.is_first = 0
-        let tab.is_last = 0
         let tab.is_current = (tabno == tabpagenr())
 
         if tab.is_current
@@ -92,9 +89,6 @@ function! s:GetTabs()
 
         call add(all_tabs, tab)
     endfor
-
-    let all_tabs[0].is_first = 1
-    let all_tabs[-1].is_last= 1
 
     return all_tabs
 endfunction
@@ -298,14 +292,15 @@ endfunction
 
 function! workspace#render()
     let wtabs = s:GetTabs()
+    let tabs_count = len(wtabs)
 
     let line = ""
-    for wi in range(0, len(wtabs) - 1)
+    for wi in range(0, tabs_count - 1)
         let prev_tab = wi > 0 ? wtabs[wi - 1] : 0
         let this_tab = wtabs[wi]
-        let next_tab = wi < len(wtabs) - 1 ? wtabs[wi + 1] : 0
+        let next_tab = wi < tabs_count - 1 ? wtabs[wi + 1] : 0
 
-        let tresult = s:RenderTab(prev_tab, this_tab, next_tab, len(wtabs))
+        let tresult = s:RenderTab(prev_tab, this_tab, next_tab, tabs_count)
 
         let line = line . tresult
     endfor
@@ -386,7 +381,7 @@ function! workspace#delete(bang)
         exec "silent enew"
         let that = winbufnr(0)
     else
-        call workspace#next()
+        call workspace#previous()
     endif
      
     try
@@ -409,7 +404,10 @@ function! workspace#delete(bang)
         echon "This file has unsaved changes. If you are sure, use force close (:WSClose!)"
         echohl None
     endtry
-    call workspace#previous()
+
+    if wbuffers[-1].bufno != this
+        call workspace#next()
+    endif
 endfunction
 
 function! workspace#newtab()
