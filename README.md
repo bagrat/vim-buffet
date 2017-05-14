@@ -16,6 +16,13 @@ time not losing visibility into tabs. Moreover, VimWorkspace provides handy
 commands to boost navigation as well as a list of options to customize how the
 tabline appears.
 
+<h3 align="center">
+    <img
+        src="https://raw.githubusercontent.com/bagrat/vim-workspace/60fadaeee65368f7d2d0a62b4dc452bf9ca99113/demo.jpg"i
+        alt="VimWorkspace Screenshot"
+    />
+</h3>
+
 See the following sections for information about each of those.
 
 ## Installation
