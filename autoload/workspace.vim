@@ -447,3 +447,22 @@ function! workspace#newtab()
 
     exec "tabnew " . bufname(this)
 endfunction
+
+function! workspace#bufonly(bang)
+    if !s:no_current
+        let wbuffers = s:GetBuffers()
+        let buffers_count = len(wbuffers)
+        let current_buffer = winbufnr(0)
+
+        while buffers_count > 1
+            call workspace#next()
+            let this = winbufnr(0)
+            if this == current_buffer
+                continue
+            endif
+
+            call workspace#delete(a:bang)
+            let buffers_count -= 1
+        endwhile
+    endif
+endfunction

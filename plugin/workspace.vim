@@ -66,6 +66,7 @@ command! WSNext :call workspace#next()
 command! WSPrev :call workspace#previous()
 command! WSTabNew :call workspace#newtab()
 command! -bang WSClose :call workspace#delete("<bang>")
+command! -bang WSBufOnly :call workspace#bufonly("<bang>")
 
 hi WorkspaceErrorText cterm=bold ctermbg=8 ctermfg=1
 exec "hi WorkspaceError cterm=NONE ctermbg=" . synIDattr(synIDtrans(hlID("WorkspaceErrorText")), 'fg') .
