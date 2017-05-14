@@ -14,7 +14,9 @@ VimWorkspace takes your buffers and tabs, and shows them combined in the
 tabline. With this you always have your list of buffers visible, at the same
 time not losing visibility into tabs. Moreover, VimWorkspace provides handy
 commands to boost navigation as well as a list of options to customize how the
-tabline appears. See the following sections for information about each of those.
+tabline appears.
+
+See the following sections for information about each of those.
 
 ## Installation
 
@@ -63,70 +65,106 @@ vimrc file, using `let <optiona-name> = <option-value>`:
 * `g:workspace_hide_buffers` - a list of buffer names to ignore. The name should
   match exactly. This option does not provide much power. For a more general
   configuration see the next option.
+
   Default:
   ```
   let g:workspace_hide_buffers = []
   ```
+
 * `g:workspace_hide_ft_buffers` - a list of `filetype`s to ignore.
+
   Default:
   ```
   let g:workspace_hide_ft_buffers = ['qf']
   ```
+
 * `g:workspace_powerline_separators` - if set to `1`, use powerline separators
   in between buffers and tabs in the tabline. This is a shortcut, so that you do
   not have to configure the separators individually.
+
   Default:
   ```
   let g:workspace_powerline_separators = 0
   ```
+
 * `g:workspace_separator` - the character to be used for separating items with
   different background colors in the tabline.
+
   Default:
   ```
   let g:workspace_separator = ""
   ```
+
 * `g:workspace_subseparator` - the character to be used for separating items that
   have the same background colors in the tabline.
+
   Default:
   ```
   let g:workspace_subseparator = "|"
   ```
+
 * `g:workspace_use_devicons` - if set to `1` and [`vim-devicons`]() plugin is
   installed, show file type icons for each buffer in the tabline. If the
   `vim-devicons` plugin is not present, the option will automatically be set to
   `0`.
+
   Default:
   ```
   let g:workspace_use_devicons = 1
   ```
+
 * `g:workspace_tab_icon` - the character to be used as an icon for the tab items
   in the tabline.
+
   Default:
   ```
   let g:workspace_tab_icon = "#"
   ```
+
 * `g:workspace_new_buffer_name` - the character to be shown as the name of a new
   buffer.
+
   Default:
   ```
   let g:workspace_new_buffer_name = "*"
   ```
+
 * `g:workspace_new_buffer_name` - the character to be shown by the name of
   a modified buffer.
   Default:
+
   ```
   let g:workspace_modified_icon = "+"
   ```
+
 * `g:workspace_left_trun_icon` - the character to be shown by the count of
   truncated buffers on the left.
+
   Default:
   ```
   let g:workspace_left_trunc_icon = "<"
   ```
+
 * `g:workspace_right_trun_icon` - the character to be shown by the count of
   truncated buffers on the right.
+  
   Default:
   ```
   let g:workspace_right_trunc_icon = ">"
   ```
 
+### Colors
+
+Of course you can customize the colors of your tabline, to make is awesome and
+yours. The following are the list of highlight groups, with self-explanatory
+names:
+
+* `WorkspaceBufferCurrent` - the current buffer.
+* `WorkspaceBufferActive` - an active buffer (a non-current buffer visible in
+  a non-current window).
+* `WorkspaceBufferHidden` - a non-current buffer.
+* `WorkspaceBufferTrunc` - the truncation indicators (count of truncated buffers
+  from the left or right).
+* `WorkspaceTabCurrent` - the current tab.
+* `WorkspaceTabHidden` - a non-current tab.
+* `WorkspaceFill` - the blank space left on the right of the tabline.
