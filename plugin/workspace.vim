@@ -13,7 +13,7 @@ endif
 " People either use the defaults, make their own customization or guess what?
 " Powerline separators! So better to ease the users life and provide a switch
 " for that.
-if get(g:, "workspace_powerline_separators", 0)  " TODO: change default to 0
+if get(g:, "workspace_powerline_separators", 0)
     let g:workspace_powerline_separators = 1
     let g:workspace_separator = "\ue0b0"
     let g:workspace_subseparator = "\ue0b1"
