@@ -176,7 +176,7 @@ function! s:StrLen(string)
     return length
 endfunction
 
-function! s:BufferValueFits(bvalue, lvalue, tab_count)
+function! s:BufferValueFits(bvalue, lvalue, tab_count, truncs)
     let sep_width = s:StrLen(g:workspace_separator)
     let subsep_width = s:StrLen(g:workspace_subseparator)
     let max_sep_width = max([sep_width, subsep_width])
@@ -187,7 +187,7 @@ function! s:BufferValueFits(bvalue, lvalue, tab_count)
     let ltrunc_icon_width = s:StrLen(g:workspace_left_trunc_icon)
     let rtrunc_icon_width = s:StrLen(g:workspace_right_trunc_icon)
     let max_trunc_icon_width = max([ltrunc_icon_width, rtrunc_icon_width])
-    let trunc_width = 2 * (1 + max_trunc_icon_width + 1 + 2 + 1 + max_sep_width)
+    let trunc_width = a:truncs * (1 + max_trunc_icon_width + 1 + 2 + 1 + max_sep_width)
 
     let value_width = s:StrLen(a:bvalue)
     let line_width = s:StrLen(a:lvalue)
@@ -206,6 +206,15 @@ function! s:ChopLeft(buffers, line)
     return [buffers, line]
 endfunction
 
+function! s:ChopRight(buffers, line)
+    let chopped = a:buffers[-1]
+    let chopped_width = len(chopped[3])
+    let buffers = a:buffers[:-2]
+    let line = a:line[:-chopped_width - 1]
+
+    return [buffers, line]
+endfunction
+
 function! s:RenderTab(prev, this, next, tab_count)
     let color = s:GetHighlight(a:this, 1)
     let tab_label = color . " " . g:workspace_tab_icon . " "
@@ -220,7 +229,9 @@ function! s:RenderTab(prev, this, next, tab_count)
         let left_count = 0
         let left_chopped_count = 0
         let right_count = 0
-        for wi in range(0, len(wbuffers) - 1)
+        let right_chopped_count = 0
+        let buffers_count = len(wbuffers)
+        for wi in range(0, buffers_count - 1)
             let prev_buffer = wi > 0 ? wbuffers[wi - 1] : 0
             let this_buffer = wbuffers[wi]
             let next_buffer = wi < len(wbuffers) - 1 ? wbuffers[wi + 1] : a:next
@@ -234,7 +245,8 @@ function! s:RenderTab(prev, this, next, tab_count)
             let buffer_value = s:RenderBuffer(prev_buffer, this_buffer, next_buffer)
 
             let done_drawing = 0
-            while !s:BufferValueFits(buffer_value, buffer_line, a:tab_count) && len(fitting_buffers)
+            let truncs_count = (left_chopped_count > 0 ? 1 : 0) + (right_chopped_count > 0 ? 1 : 0)
+            while !s:BufferValueFits(buffer_value, buffer_line, a:tab_count, truncs_count) && len(fitting_buffers)
                 if left_count < right_count
                     let done_drawing = 1
                     break
@@ -250,34 +262,31 @@ function! s:RenderTab(prev, this, next, tab_count)
                 break
             endif
 
-            " if !s:BufferValueFits(buffer_value, buffer_line, a:tab_count)
-            "     continue
-            " endif
-
             call add(fitting_buffers, [prev_buffer, this_buffer, next_buffer, buffer_value])
             let buffer_line = buffer_line . buffer_value
             let right_count += current_index > -1 && current_index != wi ? 1 : 0
+            let right_chopped_count = buffers_count - (left_chopped_count + left_count + right_count + 1)
         endfor
 
         let right_chopped_count = len(wbuffers) - (left_chopped_count + left_count + right_count + 1)
         
         if left_chopped_count > 0
             let left_trunc = [0, s:GetLeftTruncBuffer(left_chopped_count), fitting_buffers[0][1]]
-            let fitting_buffers[0][0] = left_trunc[1]
-            let fitting_buffers = [left_trunc] + fitting_buffers
+            let left_trunc_rendered = s:RenderBuffer(left_trunc[0], left_trunc[1], left_trunc[2])
+            let left_chopped = fitting_buffers[0]
+            let left_chopped[0] = left_trunc[1]
+            let left_chopped_rendered = s:RenderBuffer(left_chopped[0], left_chopped[1], left_chopped[2])
+            let buffer_line = left_trunc_rendered . left_chopped_rendered . s:ChopLeft(fitting_buffers, buffer_line)[1]
         endif
 
         if right_chopped_count > 0
             let right_trunc = [fitting_buffers[-1][1], s:GetRightTruncBuffer(right_chopped_count), a:next]
-            let fitting_buffers[-1][2] = right_trunc[1]
-            let fitting_buffers = fitting_buffers + [right_trunc]
+            let right_trunc_rendered = s:RenderBuffer(right_trunc[0], right_trunc[1], right_trunc[2])
+            let right_chopped = fitting_buffers[-1]
+            let right_chopped[2] = right_trunc[1]
+            let right_chopped_rendered = s:RenderBuffer(right_chopped[0], right_chopped[1], right_chopped[2])
+            let buffer_line = s:ChopRight(fitting_buffers, buffer_line)[1] . right_chopped_rendered . right_trunc_rendered
         endif
-
-        let buffer_line = ""
-        for bufs in fitting_buffers
-            let buffer_value = s:RenderBuffer(bufs[0], bufs[1], bufs[2])
-            let buffer_line = buffer_line . buffer_value
-        endfor
     else
         let right_sep = s:GetSeparator(a:this, a:next)
     endif
