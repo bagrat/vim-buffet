@@ -391,6 +391,10 @@ function! workspace#delete(bang)
     if len(wbuffers) == 1
         exec "silent enew"
         let that = winbufnr(0)
+
+        if this == that
+            return
+        endif
     else
         call workspace#previous()
     endif
