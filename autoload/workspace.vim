@@ -52,10 +52,10 @@ function! s:GetBuffers()
     return filtered_buffers
 endfunction
 
-function! s:GetRightTruncBuffer(count)
+function! s:GetRightTruncBuffer(count, bufno)
     let buf = {}
     let buf.type = 'Buffer'
-    let buf.bufno = -1
+    let buf.bufno = a:bufno
     let buf.is_active = 0
     let buf.is_current = 0
     let buf.state = "Trunc"
@@ -64,10 +64,10 @@ function! s:GetRightTruncBuffer(count)
     return buf
 endfunction
 
-function! s:GetLeftTruncBuffer(count)
+function! s:GetLeftTruncBuffer(count, bufno)
     let buf = {}
     let buf.type = 'Buffer'
-    let buf.bufno = -1
+    let buf.bufno = a:bufno
     let buf.is_active = 0
     let buf.is_current = 0
     let buf.state = "Trunc"
@@ -159,14 +159,29 @@ function! s:RenderBuffer(prev, this, next)
         let label = name . modified_icon
     endif
 
-    let buffer_label = color . " " . label . " "
+    let mouse_locator_start = ""
+    let mouse_locator_end = ""
+    if has('nvim')
+        let bufno = a:this.bufno
+        let mouse_locator_start = "%" . bufno . "@SwitchToBuffer@"
+        let mouse_locator_end = "%T"
+    endif
+
+    let buffer_label = mouse_locator_start . color . " " . label . " " . mouse_locator_end
     let bresult = buffer_label . right_sep
 
     return bresult
 endfunction
 
+function! SwitchToBuffer(bufno, clicks, btn, flags)
+    exec "buffer " . a:bufno
+endfunction
+
 function! s:StrLen(string)
-    let visible = substitute(a:string, "%#[^#]\\+#", "", "g")
+    let visible = substitute(a:string, '%#[^#]\+#', "", "g")
+    let visible = substitute(visible, '%T', "", "g")
+    let visible = substitute(visible, '%\d\+T', "", "g")
+    let visible = substitute(visible, '%\d\+@[^@]\+@', "", "g")
     let visible_singles = substitute(visible, '[^\d0-\d127]', "-", "g")
 
     return len(visible_singles)
@@ -275,7 +290,8 @@ function! s:RenderTab(prev, this, next, tab_count)
         let right_chopped_count = len(wbuffers) - (left_chopped_count + left_count + right_count + 1)
         
         if left_chopped_count > 0
-            let left_trunc = [0, s:GetLeftTruncBuffer(left_chopped_count), fitting_buffers[0][1]]
+            let left_trunc_buffer = s:GetLeftTruncBuffer(left_chopped_count, wbuffers[left_chopped_count - 1].bufno)
+            let left_trunc = [0, left_trunc_buffer, fitting_buffers[0][1]]
             let left_trunc_rendered = s:RenderBuffer(left_trunc[0], left_trunc[1], left_trunc[2])
             let left_chopped = fitting_buffers[0]
             let left_chopped[0] = left_trunc[1]
@@ -284,7 +300,8 @@ function! s:RenderTab(prev, this, next, tab_count)
         endif
 
         if right_chopped_count > 0
-            let right_trunc = [fitting_buffers[-1][1], s:GetRightTruncBuffer(right_chopped_count), a:next]
+            let right_trunc_buffer = s:GetRightTruncBuffer(right_chopped_count, wbuffers[-right_chopped_count].bufno)
+            let right_trunc = [fitting_buffers[-1][1], right_trunc_buffer, a:next]
             let right_trunc_rendered = s:RenderBuffer(right_trunc[0], right_trunc[1], right_trunc[2])
             let right_chopped = fitting_buffers[-1]
             let right_chopped[2] = right_trunc[1]
