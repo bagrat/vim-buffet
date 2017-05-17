@@ -68,18 +68,17 @@ command! WSTabNew :call workspace#newtab()
 command! -bang WSClose :call workspace#delete("<bang>")
 command! -bang WSBufOnly :call workspace#bufonly("<bang>")
 
-hi WorkspaceErrorText cterm=bold ctermbg=8 ctermfg=1
-exec "hi WorkspaceError cterm=NONE ctermbg=" . synIDattr(synIDtrans(hlID("WorkspaceErrorText")), 'fg') .
-                                  \ " ctermfg=" . synIDattr(synIDtrans(hlID("WorkspaceErrorText")), 'bg')
+hi WorkspaceErrorText cterm=bold ctermbg=8 ctermfg=1 guibg=#000000 guifg=#FF0000
+hi WorkspaceError cterm=bold ctermbg=1 ctermfg=8 guibg=#FF0000 guifg=#000000
 
-hi! WorkspaceBufferCurrentDefault cterm=NONE ctermbg=2 ctermfg=8
-hi! WorkspaceBufferActiveDefault cterm=NONE ctermbg=10 ctermfg=2
-hi! WorkspaceBufferHiddenDefault cterm=NONE ctermbg=10 ctermfg=8
-hi! WorkspaceBufferTruncDefault cterm=bold ctermbg=10 ctermfg=8
-hi! WorkspaceTabCurrentDefault cterm=NONE ctermbg=4 ctermfg=8
-hi! WorkspaceTabHiddenDefault cterm=NONE ctermbg=4 ctermfg=8
-hi! WorkspaceFillDefault cterm=NONE ctermbg=10 ctermfg=10
-hi! WorkspaceIconDefault cterm=NONE ctermbg=5 ctermfg=10
+hi! WorkspaceBufferCurrentDefault cterm=NONE ctermbg=2 ctermfg=8 guibg=#00FF00 guifg=#000000
+hi! WorkspaceBufferActiveDefault cterm=NONE ctermbg=10 ctermfg=2 guibg=#999999 guifg=#00FF00
+hi! WorkspaceBufferHiddenDefault cterm=NONE ctermbg=10 ctermfg=8 guibg=#999999 guifg=#000000
+hi! WorkspaceBufferTruncDefault cterm=bold ctermbg=10 ctermfg=8 guibg=#999999 guifg=#000000
+hi! WorkspaceTabCurrentDefault cterm=NONE ctermbg=4 ctermfg=8 guibg=#0000FF guifg=#000000
+hi! WorkspaceTabHiddenDefault cterm=NONE ctermbg=4 ctermfg=8 guibg=#0000FF guifg=#000000
+hi! WorkspaceFillDefault cterm=NONE ctermbg=10 ctermfg=10 guibg=#999999 guifg=#999999
+hi! WorkspaceIconDefault cterm=NONE ctermbg=5 ctermfg=10 guibg=#FF0000 guifg=#999999
 
 hi link WorkspaceBufferCurrent WorkspaceBufferCurrentDefault
 hi link WorkspaceBufferActive WorkspaceBufferActiveDefault
