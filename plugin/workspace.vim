@@ -106,27 +106,35 @@ function! s:SetColors()
                 \   "TabCurrent",
                 \   "TabHidden",
                 \   "Fill",
-                \   "Icon",
                 \ ]
 
     for left_hi in hi_groups
         for right_hi in hi_groups
             let hi_name = left_hi . right_hi
-            let left_bg = synIDattr(synIDtrans(hlID("Workspace" . left_hi)), 'bg')
-            let left_fg = synIDattr(synIDtrans(hlID("Workspace" . left_hi)), 'fg')
-            let right_bg = synIDattr(synIDtrans(hlID("Workspace" . right_hi)), 'bg')
-            let right_fg = synIDattr(synIDtrans(hlID("Workspace" . right_hi)), 'fg')
+            let left_bg = synIDattr(synIDtrans(hlID("Workspace" . left_hi)), 'bg', 'cterm')
+            let left_fg = synIDattr(synIDtrans(hlID("Workspace" . left_hi)), 'fg', 'cterm')
+            let right_bg = synIDattr(synIDtrans(hlID("Workspace" . right_hi)), 'bg', 'cterm')
+            let right_fg = synIDattr(synIDtrans(hlID("Workspace" . right_hi)), 'fg', 'cterm')
 
-            if left_bg != right_bg
-                exec "hi! Workspace" . hi_name . " ctermfg=" . left_bg . " ctermbg=" . right_bg    
+            let left_bgh = synIDattr(synIDtrans(hlID("Workspace" . left_hi)), 'bg#', 'gui')
+            let left_fgh = synIDattr(synIDtrans(hlID("Workspace" . left_hi)), 'fg#', 'gui')
+            let right_bgh = synIDattr(synIDtrans(hlID("Workspace" . right_hi)), 'bg#', 'gui')
+            let right_fgh = synIDattr(synIDtrans(hlID("Workspace" . right_hi)), 'fg#', 'gui')
+
+            if left_bg != right_bg || left_bgh != right_bgh
+                exec "hi! Workspace" . hi_name . " ctermfg=" . left_bg . " ctermbg=" . right_bg
+                            \ . " guifg=" . left_bgh . " guibg=" . right_bgh
             else
                 let fg = left_fg
+                let fgh = left_fgh
 
                 if left_hi == "BufferActive" || left_hi == "BufferTrunc"
-                    let fg = synIDattr(synIDtrans(hlID("WorkspaceBufferHidden")), 'fg') 
+                    let fg = synIDattr(synIDtrans(hlID("WorkspaceBufferHidden")), 'fg', 'cterm')
+                    let fgh = synIDattr(synIDtrans(hlID("WorkspaceBufferHidden")), 'fg#', 'gui') 
                 endif
 
                 exec "hi! Workspace" . hi_name . " ctermfg=" . fg . " ctermbg=" . right_bg
+                            \ . " guifg=" . fgh . " guibg=" . right_bgh
             endif
         endfor
     endfor
@@ -134,7 +142,7 @@ endfunction
 
 augroup set_colors_workspace
     autocmd!
-    autocmd ColorScheme * call s:set_colors()
+    autocmd ColorScheme * call s:SetColors()
 augroup end
 
 " Set solors also at the startup
