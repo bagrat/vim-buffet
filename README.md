@@ -181,6 +181,10 @@ names:
 * `WorkspaceTabHidden` - a non-current tab.
 * `WorkspaceFill` - the blank space left on the right of the tabline.
 
+To get your custom colors set, define a function with name
+`g:WorkspaceSetCustomColors` and place your highlight group definitions inside
+the function. Make sure the function is defined before `VimWorkspace` is loaded
+
 ## Recommendations and FAQ
 
 Here are some recommended mappings to boost your navigation experience:
