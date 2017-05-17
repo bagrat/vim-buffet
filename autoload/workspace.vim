@@ -234,15 +234,15 @@ function! s:RenderTab(prev, this, next, tab_count)
             let this_buffer = wbuffers[wi]
             let next_buffer = wi < len(wbuffers) - 1 ? wbuffers[wi + 1] : a:next
 
-            " if s:no_current == 0
+            if s:no_current == 0
                 if this_buffer.is_current && current_index == -1
                     let current_index = wi
                 endif
-            " else
-            "     if this_buffer.bufno == s:last_current
-            "         let current_index = wi
-            "     endif
-            " endif
+            else
+                if this_buffer.bufno == s:last_current
+                    let current_index = wi
+                endif
+            endif
 
             let left_count += current_index == -1 ? 1 : 0
             let right_chopped_count = buffers_count - (left_chopped_count + left_count + right_count + 1)
@@ -295,7 +295,8 @@ function! s:RenderTab(prev, this, next, tab_count)
         let right_sep = s:GetSeparator(a:this, a:next)
     endif
 
-    let tab_label = color . " " . g:workspace_tab_icon . " "
+    let tabno = a:this.tabno
+    let tab_label = "%" . tabno . "T"  . color . " " . g:workspace_tab_icon . " %T"
     let tresult = tab_label . right_sep . buffer_line
 
     return tresult
