@@ -314,9 +314,17 @@ function! s:RenderTab(prev, this, next, tab_count)
         let right_sep = s:GetSeparator(a:this, a:next)
     endif
 
+    if has('nvim')
+        let local_suffix = ' %T'
+        let global_suffix = ''
+    else
+        let local_suffix = ' '
+        let global_suffix = '%T'
+    endif
+
     let tabno = a:this.tabno
-    let tab_label = "%" . tabno . "T"  . color . " " . g:workspace_tab_icon . " %T"
-    let tresult = tab_label . right_sep . buffer_line
+    let tab_label = "%" . tabno . "T"  . color . " " . g:workspace_tab_icon . local_suffix
+    let tresult = tab_label . right_sep . buffer_line . global_suffix
 
     return tresult
 endfunction
