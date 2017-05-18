@@ -12,7 +12,9 @@ function! s:GetBuffers()
         endif
 
         if !buflisted(bufno)
-            continue
+            if getbufvar(bufno, '&filetype') != 'help'
+                continue
+            endif
         endif
 
         let buffer_name = bufname(bufno)
@@ -232,9 +234,9 @@ function! s:RenderTab(prev, this, next, tab_count)
     let color = s:GetHighlight(a:this, 1)
     let tab_label = color . " " . g:workspace_tab_icon . " "
 
+    let wbuffers = s:GetBuffers()
     let buffer_line = ""
-    if a:this.is_current
-        let wbuffers = s:GetBuffers()
+    if len(wbuffers) > 0 && a:this.is_current
         let right_sep = s:GetSeparator(a:this, wbuffers[0])
 
         let fitting_buffers = []
@@ -370,7 +372,11 @@ function! workspace#previous()
     let wbuffers = s:GetBuffers()
     
     if len(wbuffers) == 1
-        return
+        if !wbuffers[0].is_current
+            exec "buffer " . wbuffers[0].bufno
+        else
+            return
+        endif
     endif
 
     let last_seen = -1
@@ -445,6 +451,11 @@ endfunction
 
 function! workspace#newtab()
     let wbuffers = s:GetBuffers()
+
+    if len(wbuffers) == 0
+        exec "tabnew"
+        return
+    endif
     
     let current = -1
     let active = -1
