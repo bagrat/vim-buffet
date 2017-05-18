@@ -29,6 +29,18 @@ are the truncation indicators. If all the buffers do not fit the screen,
 VimWorkflow truncates the tabline, and shows the number of truncated buffers on
 both ends.
 
+*Note: the instance of vim in the screenshot is configured to use powerline
+symbols and dev-icons. The default interface is only text and will work without
+requiring any patched fonts. The default interface looks like in the screenshot
+below.*
+
+<h3 align="center">
+    <img
+        src="https://raw.githubusercontent.com/bagrat/vim-workspace/47741bfed48fe73b1ebcf2653e6be60379477c53/demo2.jpg"i
+        alt="VimWorkspace Screenshot"
+    />
+</h3>
+
 ## Installation
 
 Use your favourite plugin manager to install VimWorkspace. If you do not have any
