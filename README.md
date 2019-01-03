@@ -1,14 +1,14 @@
-# VimWorkspace
+# vim-buffet
 
 If you are an experienced Vim user, you might got tired of `bn/bp/ls/Ctrl-^`. If
 you are new to the Vim world, then welcome, and start by learning Vim's
 notions of [buffers, windows](http://vimdoc.sourceforge.net/htmldoc/windows.html)
 and [tabpages](http://vimdoc.sourceforge.net/htmldoc/tabpage.html).
 
-VimWorkspace brings the IDE-like tabs into Vim, for easy navigation, and a nice,
-customizable look. It takes your buffers and tabs, and shows them combined in the
+vim-buffet brings the IDE-like tabs into Vim, for easy navigation, and a nice,
+customizable look. It takes your buffers and tabs, and shows them combined in th
 tabline. With this you always have your list of buffers visible, at the same
-time not losing visibility into tabs. Moreover, VimWorkspace provides handy
+time not losing visibility into tabs. Moreover, vim-buffet provides handy
 commands to boost navigation as well as a list of options to customize how the
 tabline appears.
 
@@ -16,8 +16,8 @@ tabline appears.
 
 <h3 align="center">
     <img
-        src="https://raw.githubusercontent.com/bagrat/vim-workspace/60fadaeee65368f7d2d0a62b4dc452bf9ca99113/demo.jpg"i
-        alt="VimWorkspace Screenshot"
+        src="https://raw.githubusercontent.com/bagrat/vim-buffet/60fadaeee65368f7d2d0a62b4dc452bf9ca99113/demo.jpg"
+        alt="vim-buffet Screenshot"
     />
 </h3>
 
@@ -36,21 +36,21 @@ below.*
 
 <h3 align="center">
     <img
-        src="https://raw.githubusercontent.com/bagrat/vim-workspace/47741bfed48fe73b1ebcf2653e6be60379477c53/demo2.jpg"i
-        alt="VimWorkspace Screenshot"
+        src="https://raw.githubusercontent.com/bagrat/vim-buffet/47741bfed48fe73b1ebcf2653e6be60379477c53/demo2.jpg"i
+        alt="vim-buffet Screenshot"
     />
 </h3>
 
 ## Installation
 
-Use your favourite plugin manager to install VimWorkspace. If you do not have any
+Use your favourite plugin manager to install vim-buffet. If you do not have any
 preference or have not decided yet, I would recommend [Plug](https://github.com/junegunn/vim-plug).
 
 ```
-Plug 'bagrat/vim-workspace'
+Plug 'bagrat/vim-buffet'
 ```
 
-After installation, VimWorkspace is enabled by default, so whenever you restart
+After installation, vim-buffet is enabled by default, so whenever you restart
 Vim, you will see the new tabline!
 
 ## Commands
@@ -195,7 +195,7 @@ names:
 
 To get your custom colors set, define a function with name
 `g:WorkspaceSetCustomColors` and place your highlight group definitions inside
-the function. Make sure the function is defined before `VimWorkspace` is loaded
+the function. Make sure the function is defined before `vim-buffet` is loaded
 
 ## Recommendations and FAQ
 
@@ -232,4 +232,4 @@ let g:workspace_right_trunc_icon = "\uf0a9"
 ## License
 
 See
-[LICENSE](https://github.com/bagrat/vim-workspace/blob/master/LICENS://github.com/bagrat/vim-workspace/blob/master/LICENSE).
+[LICENSE](https://github.com/bagrat/vim-buffet/blob/master/LICENS://github.com/bagrat/vim-buffet/blob/master/LICENSE).
