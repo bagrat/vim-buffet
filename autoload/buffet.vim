@@ -60,8 +60,27 @@ function! s:RenderBuffers()
     return buffers_render
 endfunction
 
-function! buffet#render()
+function! s:RenderTabs()
+    let last_tab_id = tabpagenr('$')
+    let current_tab_id = tabpagenr()
+
     let buffers_render = s:RenderBuffers()
 
-    return buffers_render
+    let tabs_render = ""
+    for tab_id in range(1, last_tab_id)
+        let tab_render = ""
+        let tab_render = tab_render . " # "
+        
+        if tab_id == current_tab_id
+            let tab_render = tab_render . buffers_render
+        endif
+
+        let tabs_render = tabs_render . tab_render
+    endfor
+
+    return tabs_render
+endfunction
+
+function! buffet#render()
+    return s:RenderTabs()
 endfunction
