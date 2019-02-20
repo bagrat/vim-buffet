@@ -1,6 +1,10 @@
 let s:buffers = {}
 let s:buffer_ids = []
 
+" FIXME: handle when the last current is deleted
+" TODO: comment about the need of this
+let s:last_current_buffer_id = 0
+
 function! buffet#update()
     let last_buffer_id = bufnr('$')
 
@@ -17,12 +21,16 @@ function! buffet#update()
                 " forget about this buffer
                 call remove(s:buffers, buffer_id)
                 call remove(s:buffer_ids, index(s:buffer_ids, buffer_id))
+
+                if buffer_id == s:last_current_buffer_id
+                    let s:last_current_buffer_id = s:buffer_ids[0]
+                endif
             endif
 
             continue
         endif
 
-        " if this buffer is already tracked, we're good
+        " if this buffer is already tracked and listed, we're good
         if is_present
             continue
         endif
@@ -45,10 +53,14 @@ function! buffet#update()
         " update the buffer IDs list
         call add(s:buffer_ids, buffer_id)
     endfor
+
+    let current_buffer_id = bufnr('%')
+    if has_key(s:buffers, current_buffer_id)
+        let s:last_current_buffer_id = current_buffer_id
+    endif
 endfunction
 
 function! s:RenderBufferAtIndex(buffer_id_index)
-    let current_buffer_id = bufnr('%')
     let buffer_id = s:buffer_ids[a:buffer_id_index]
     let buffer = s:buffers[buffer_id]
 
@@ -56,7 +68,8 @@ function! s:RenderBufferAtIndex(buffer_id_index)
 
     let buffer_render = buffer_render . " " . buffer.name
 
-    if current_buffer_id == buffer_id
+    let current_buffer_id = bufnr("%")
+    if buffer_id == current_buffer_id
         let buffer_render = buffer_render . "*"
     endif
 
@@ -64,10 +77,7 @@ function! s:RenderBufferAtIndex(buffer_id_index)
 endfunction
 
 function! s:RenderBuffers(length_limit)
-    let current_buffer_id = bufnr('%')
-    let buffers_render = ""
-
-    let buffers_count = len(s:buffer_ids)
+    let current_buffer_id = s:last_current_buffer_id
     let current_buffer_id_i = index(s:buffer_ids, current_buffer_id)
 
     let current_buffer = s:buffers[current_buffer_id]
@@ -85,6 +95,7 @@ function! s:RenderBuffers(length_limit)
         endif
     endfor
 
+    let buffers_count = len(s:buffer_ids)
     for right_i in range(current_buffer_id_i + 1, buffers_count - 1)
         let buffer = s:buffers[s:buffer_ids[right_i]]
         if buffer.length <= capacity
@@ -95,6 +106,7 @@ function! s:RenderBuffers(length_limit)
         endif
     endfor
 
+    let buffers_render = ""
     for i in range(left_i, right_i)
         let buffers_render = buffers_render . s:RenderBufferAtIndex(i)
     endfor
@@ -127,5 +139,6 @@ function! s:RenderTabs()
 endfunction
 
 function! buffet#render()
+    call buffet#update()
     return s:RenderTabs()
 endfunction
