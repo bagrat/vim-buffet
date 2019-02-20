@@ -64,9 +64,7 @@ function! s:RenderBufferAtIndex(buffer_id_index)
     let buffer_id = s:buffer_ids[a:buffer_id_index]
     let buffer = s:buffers[buffer_id]
 
-    let buffer_render = ""
-
-    let buffer_render = buffer_render . " " . buffer.name
+    let buffer_render = buffer.name
 
     let current_buffer_id = bufnr("%")
     if buffer_id == current_buffer_id
@@ -76,57 +74,73 @@ function! s:RenderBufferAtIndex(buffer_id_index)
     return buffer_render
 endfunction
 
-function! s:RenderBuffers(length_limit)
+function! s:GetVisibleRange(length_limit)
     let current_buffer_id = s:last_current_buffer_id
     let current_buffer_id_i = index(s:buffer_ids, current_buffer_id)
 
     let current_buffer = s:buffers[current_buffer_id]
-    let capacity = a:length_limit - current_buffer.length
+    let buffer_padding = 3
+    let capacity = a:length_limit - current_buffer.length - buffer_padding
     let left_i = current_buffer_id_i
     let right_i = current_buffer_id_i
 
     for left_i in range(current_buffer_id_i - 1, 0, -1)
         let buffer = s:buffers[s:buffer_ids[left_i]]
-        if buffer.length <= capacity
-            let capacity = capacity - buffer.length
+        if (buffer.length + buffer_padding) <= capacity
+            let capacity = capacity - buffer.length - buffer_padding
         else
             let left_i = left_i + 1
             break
         endif
     endfor
 
-    let buffers_count = len(s:buffer_ids)
-    for right_i in range(current_buffer_id_i + 1, buffers_count - 1)
+    for right_i in range(current_buffer_id_i + 1, len(s:buffers) - 1)
         let buffer = s:buffers[s:buffer_ids[right_i]]
-        if buffer.length <= capacity
-            let capacity = capacity - buffer.length
+        if (buffer.length + buffer_padding) <= capacity
+            let capacity = capacity - buffer.length - buffer_padding
         else
             let right_i = right_i - 1
             break
         endif
     endfor
 
+    return [left_i, right_i]
+endfunction
+
+function! s:RenderBuffers(length_limit)
+    let [left_i, right_i] = s:GetVisibleRange(a:length_limit)
+
     let buffers_render = ""
-    for i in range(left_i, right_i)
-        let buffers_render = buffers_render . s:RenderBufferAtIndex(i)
-    endfor
 
     let trunced_left = left_i
-    let trunced_right = (buffers_count - right_i - 1)
+    if trunced_left
+        let buffers_render = " <" . trunced_left . " |"
+    endif
 
-    return trunced_left . " " . buffers_render . " " . trunced_right
+    for i in range(left_i, right_i)
+        let buffers_render = buffers_render . " " . s:RenderBufferAtIndex(i) . " |"
+    endfor
+
+    let trunced_right = (len(s:buffers) - right_i - 1)
+    if trunced_right
+        let buffers_render = buffers_render . " " . trunced_right . "> |"
+    endif
+
+    return buffers_render
 endfunction
 
 function! s:RenderTabs()
     let last_tab_id = tabpagenr('$')
     let current_tab_id = tabpagenr()
 
-    let buffers_render = s:RenderBuffers(40)
+    " FIXME: make this more readable after
+    let capacity = &columns - 2 * (2 + 4) - last_tab_id * 4 
+    let buffers_render = s:RenderBuffers(capacity)
 
     let tabs_render = ""
     for tab_id in range(1, last_tab_id)
         let tab_render = ""
-        let tab_render = tab_render . " # "
+        let tab_render = tab_render . " # |"
         
         if tab_id == current_tab_id
             let tab_render = tab_render . buffers_render
