@@ -1,7 +1,6 @@
 let s:buffers = {}
 let s:buffer_ids = []
 
-" FIXME: handle when the last current is deleted
 " TODO: comment about the need of this
 let s:last_current_buffer_id = 0
 
@@ -18,20 +17,20 @@ function! buffet#update()
         " skip if a buffer with this id does not exist
         if !buflisted(buffer_id)
             if is_present
-                " forget about this buffer
-                call remove(s:buffers, buffer_id)
-                call remove(s:buffer_ids, index(s:buffer_ids, buffer_id))
-
                 if buffer_id == s:last_current_buffer_id
                     let s:last_current_buffer_id = s:buffer_ids[0]
                 endif
+
+                " forget about this buffer
+                call remove(s:buffers, buffer_id)
+                call remove(s:buffer_ids, index(s:buffer_ids, buffer_id))
             endif
 
             continue
         endif
 
         " if this buffer is already tracked and listed, we're good
-        if is_present
+        if is_present && len(s:buffers) > 1
             continue
         endif
 
@@ -73,6 +72,8 @@ function! s:RenderBufferAtIndex(buffer_id_index)
 
     return buffer_render
 endfunction
+
+" TODO: think maybe better to paginate the tabs. for better visuals
 
 function! s:GetVisibleRange(length_limit)
     let current_buffer_id = s:last_current_buffer_id
