@@ -64,22 +64,6 @@ function! buffet#update()
     endif
 endfunction
 
-function! s:RenderBufferAtIndex(buffer_id_index)
-    let buffer_id = s:buffer_ids[a:buffer_id_index]
-    let buffer = s:buffers[buffer_id]
-
-    let buffer_render = buffer.name
-
-    let current_buffer_id = bufnr("%")
-    if buffer_id == current_buffer_id
-        let buffer_render = buffer_render . "*"
-    endif
-
-    return buffer_render
-endfunction
-
-" TODO: think maybe better to paginate the tabs. for better visuals
-
 function! s:GetVisibleRange(length_limit)
     let current_buffer_id = s:last_current_buffer_id
     let current_buffer_id_i = index(s:buffer_ids, current_buffer_id)
@@ -100,7 +84,6 @@ function! s:GetVisibleRange(length_limit)
         endif
     endfor
 
-    echom current_buffer_id_i . " " . len(s:buffers)
     for right_i in range(current_buffer_id_i + 1, len(s:buffers) - 1)
         let buffer = s:buffers[s:buffer_ids[right_i]]
         if (buffer.length + buffer_padding) <= capacity
@@ -113,96 +96,6 @@ function! s:GetVisibleRange(length_limit)
 
     return [left_i, right_i]
 endfunction
-
-function! s:RenderBuffers(length_limit)
-    let [left_i, right_i] = s:GetVisibleRange(a:length_limit)
-
-    let buffers_render = ""
-
-    let trunced_left = left_i
-    if trunced_left
-        let buffers_render = " <" . trunced_left . " |"
-    endif
-
-    for i in range(left_i, right_i)
-        let buffers_render = buffers_render . " " . s:RenderBufferAtIndex(i) . " |"
-    endfor
-
-    let trunced_right = (len(s:buffers) - right_i - 1)
-    if trunced_right
-        let buffers_render = buffers_render . " " . trunced_right . "> |"
-    endif
-
-    return buffers_render
-endfunction
-
-function! s:RenderTabs()
-    let last_tab_id = tabpagenr('$')
-    let current_tab_id = tabpagenr()
-
-    " FIXME: make this more readable after
-    let capacity = &columns - 2 * (2 + 4) - last_tab_id * 4 
-    let buffers_render = s:RenderBuffers(capacity)
-
-    let tabs_render = ""
-    for tab_id in range(1, last_tab_id)
-        let tab_render = ""
-        let tab_render = tab_render . " # |"
-        
-        if tab_id == current_tab_id
-            let tab_render = tab_render . buffers_render
-        endif
-
-        let tabs_render = tabs_render . tab_render
-    endfor
-
-    return tabs_render
-endfunction
-
-"let element_combinations = {
-"    "Tab": {
-"        "Tab": {},
-"        "LeftTrunc": {},
-"        "Buffer": {},
-"        "CurrentBuffer": {},
-"        "ActiveBuffer": {},
-"    }
-"    "LeftTrunc": {
-"        "Buffer": {},
-"        "CurrentBuffer": {},
-"        "ActiveBuffer": {},
-"    }
-"    "RightTrunc": {
-"        "Tab": {},
-"        "End": {},
-"    }
-"    "Buffer": {
-"        "Buffer": {},
-"        "ActiveBuffer": {},
-"        "CurrentBuffer": {},
-"        "RightTrunc": {},
-"        "Tab": {},
-"        "End": {},
-"    }
-"    "ActiveBuffer": {
-"        "Buffer": {},
-"        "ActiveBuffer": {},
-"        "CurrentBuffer": {},
-"        "RightTrunc": {},
-"        "Tab": {},
-"        "End": {},
-"    }
-"    "CurrentBuffer": {
-"        "Buffer": {},
-"        "ActiveBuffer": {},
-"        "RightTrunc": {},
-"        "Tab": {},
-"        "End": {},
-"    }
-"    "Start": {
-"        "Tab": {},
-"    }
-"}
 
 function! s:GetBufferElements(capacity)
     let [left_i, right_i] = s:GetVisibleRange(a:capacity)
@@ -256,6 +149,9 @@ function! s:GetAllElements(capacity)
         endif
     endfor
 
+    let end_elem = {"type": "End", "value": ""}
+    call add(tab_elems, end_elem)
+
     return tab_elems
 endfunction
 
@@ -268,12 +164,22 @@ function! s:IsBufferElement(element)
 endfunction
 
 function! s:Render()
-    let capacity = &columns
+    " TODO: revisit
+    let capacity = &columns - 15
     let elements = s:GetAllElements(capacity)
 
     let render = ""
-    for elem in elements
-        let render = render . elem.value . " |"
+    for i in range(0, len(elements) - 2)
+        let left = elements[i]
+        let elem = left
+        let right = elements[i + 1]
+
+        let highlight = "%#" . g:buffet_prefix . elem.type . "#"
+        let render = render . highlight . " " . elem.value . " "
+
+        if g:buffet_has_separator[left.type][right.type]
+            let render = render . "|"
+        endif
     endfor
 
     return render
