@@ -113,9 +113,17 @@ function! s:GetBufferElements(capacity)
         let buffer_id = s:buffer_ids[i]
         let buffer = s:buffers[buffer_id]
 
+        if buffer_id == winbufnr(0)
+            let type_prefix = "Current"
+        elseif bufwinnr(buffer_id) > 0
+            let type_prefix = "Active"
+        else
+            let type_prefix = ""
+        endif
+
         let elem = {}
+        let elem.type = type_prefix . "Buffer"
         let elem.value = buffer.name
-        let elem.type = "Buffer"
         let elem.buffer = buffer
 
         call add(buffer_elems, elem)
@@ -150,6 +158,7 @@ function! s:GetAllElements(capacity)
     endfor
 
     let end_elem = {"type": "End", "value": ""}
+    call add(tab_elems, end_elem)
     call add(tab_elems, end_elem)
 
     return tab_elems

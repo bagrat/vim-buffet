@@ -43,10 +43,13 @@ let g:buffet_has_separator = {
             \         "Tab": 1,
             \         "End": 1,
             \     },
+            \     "End": {
+            \         "End": 0,
+            \     },
             \ }
 
 function! s:SetColors()
-    hi link BuffetActiveBuffer ErrorMsg
+    hi link BuffetActiveBuffer Cursor
     hi link BuffetCurrentBuffer Search
     hi link BuffetBuffer NonText
     hi link BuffetTab StatusLineTerm
