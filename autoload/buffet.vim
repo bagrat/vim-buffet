@@ -8,13 +8,13 @@ function! buffet#update()
     let last_buffer_id = bufnr('$')
 
     for buffer_id in range(1, last_buffer_id)
-        " check if we already keep track of this buffer
+        " Check if we already keep track of this buffer
         let is_present = 0
         if has_key(s:buffers, buffer_id)
             let is_present = 1
         endif
 
-        " skip if a buffer with this id does not exist
+        " Skip if a buffer with this id does not exist
         if !buflisted(buffer_id)
             if is_present
                 if buffer_id == s:last_current_buffer_id
@@ -29,12 +29,14 @@ function! buffet#update()
             continue
         endif
 
-        " if this buffer is already tracked and listed, we're good
+        " If this buffer is already tracked and listed, we're good.
+        " In case if it is the only buffer, still update, because an empty new
+        " buffer id is being replaced by a buffer for an existing file.
         if is_present && len(s:buffers) > 1
             continue
         endif
 
-        " initialize the buffer object
+        " Initialize the buffer object
         let buffer_name = bufname(buffer_id)
         let buffer = {}
         let buffer.name = fnamemodify(buffer_name, ':t')
@@ -47,10 +49,13 @@ function! buffet#update()
         let buffer.name_length = len(buffer.name)
         let buffer.is_active = (bufwinnr(buffer_id) > 0)
 
-        " update the buffers map
+        " Update the buffers map
         let s:buffers[buffer_id] = buffer
-        " update the buffer IDs list
-        call add(s:buffer_ids, buffer_id)
+
+        if !is_present
+            " Update the buffer IDs list
+            call add(s:buffer_ids, buffer_id)
+        endif
     endfor
 
     let current_buffer_id = bufnr('%')
@@ -95,6 +100,7 @@ function! s:GetVisibleRange(length_limit)
         endif
     endfor
 
+    echom current_buffer_id_i . " " . len(s:buffers)
     for right_i in range(current_buffer_id_i + 1, len(s:buffers) - 1)
         let buffer = s:buffers[s:buffer_ids[right_i]]
         if (buffer.length + buffer_padding) <= capacity
@@ -153,7 +159,127 @@ function! s:RenderTabs()
     return tabs_render
 endfunction
 
+"let element_combinations = {
+"    "Tab": {
+"        "Tab": {},
+"        "LeftTrunc": {},
+"        "Buffer": {},
+"        "CurrentBuffer": {},
+"        "ActiveBuffer": {},
+"    }
+"    "LeftTrunc": {
+"        "Buffer": {},
+"        "CurrentBuffer": {},
+"        "ActiveBuffer": {},
+"    }
+"    "RightTrunc": {
+"        "Tab": {},
+"        "End": {},
+"    }
+"    "Buffer": {
+"        "Buffer": {},
+"        "ActiveBuffer": {},
+"        "CurrentBuffer": {},
+"        "RightTrunc": {},
+"        "Tab": {},
+"        "End": {},
+"    }
+"    "ActiveBuffer": {
+"        "Buffer": {},
+"        "ActiveBuffer": {},
+"        "CurrentBuffer": {},
+"        "RightTrunc": {},
+"        "Tab": {},
+"        "End": {},
+"    }
+"    "CurrentBuffer": {
+"        "Buffer": {},
+"        "ActiveBuffer": {},
+"        "RightTrunc": {},
+"        "Tab": {},
+"        "End": {},
+"    }
+"    "Start": {
+"        "Tab": {},
+"    }
+"}
+
+function! s:GetBufferElements(capacity)
+    let [left_i, right_i] = s:GetVisibleRange(a:capacity)
+    let buffer_elems = []
+
+    let trunced_left = left_i
+    if trunced_left
+        let left_trunc_elem = {}
+        let left_trunc_elem.type = "LeftTrunc"
+        let left_trunc_elem.value = trunced_left
+        call add(buffer_elems, left_trunc_elem)
+    endif
+
+    for i in range(left_i, right_i)
+        let buffer_id = s:buffer_ids[i]
+        let buffer = s:buffers[buffer_id]
+
+        let elem = {}
+        let elem.value = buffer.name
+        let elem.type = "Buffer"
+        let elem.buffer = buffer
+
+        call add(buffer_elems, elem)
+    endfor
+
+    let trunced_right = (len(s:buffers) - right_i - 1)
+    if trunced_right
+        let right_trunc_elem = {}
+        let right_trunc_elem.type = "RightTrunc"
+        let right_trunc_elem.value = trunced_right
+        call add(buffer_elems, right_trunc_elem)
+    endif
+
+    return buffer_elems
+endfunction
+
+function! s:GetAllElements(capacity)
+    let last_tab_id = tabpagenr('$')
+    let current_tab_id = tabpagenr()
+    let buffer_elems = s:GetBufferElements(a:capacity)
+    let tab_elems = []
+
+    for tab_id in range(1, last_tab_id)
+        let elem = {}
+        let elem.value = "#"
+        let elem.type = "Tab"
+        call add(tab_elems, elem)
+        
+        if tab_id == current_tab_id
+            let tab_elems = tab_elems + buffer_elems
+        endif
+    endfor
+
+    return tab_elems
+endfunction
+
+function! s:IsBufferElement(element)
+    if index(["Buffer", "ActiveBuffer", "CurrentBuffer"], element.type) >= 0
+        return 1
+    endif
+
+    return 0
+endfunction
+
+function! s:Render()
+    let capacity = &columns
+    let elements = s:GetAllElements(capacity)
+
+    let render = ""
+    for elem in elements
+        let render = render . elem.value . " |"
+    endfor
+
+    return render
+endfunction
+
 function! buffet#render()
     call buffet#update()
-    return s:RenderTabs()
+    return s:Render()
 endfunction
