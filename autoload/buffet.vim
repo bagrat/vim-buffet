@@ -43,7 +43,7 @@ function! buffet#update()
         let buffer.length = len(buffer.name)
 
         if buffer.name == ""
-            let buffer.name = "@"
+            let buffer.name = "*"
         endif
 
         let buffer.name_length = len(buffer.name)
@@ -64,20 +64,19 @@ function! buffet#update()
     endif
 endfunction
 
-function! s:GetVisibleRange(length_limit)
+function! s:GetVisibleRange(length_limit, buffer_padding)
     let current_buffer_id = s:last_current_buffer_id
     let current_buffer_id_i = index(s:buffer_ids, current_buffer_id)
 
     let current_buffer = s:buffers[current_buffer_id]
-    let buffer_padding = 3
-    let capacity = a:length_limit - current_buffer.length - buffer_padding
+    let capacity = a:length_limit - current_buffer.length - a:buffer_padding
     let left_i = current_buffer_id_i
     let right_i = current_buffer_id_i
 
     for left_i in range(current_buffer_id_i - 1, 0, -1)
         let buffer = s:buffers[s:buffer_ids[left_i]]
-        if (buffer.length + buffer_padding) <= capacity
-            let capacity = capacity - buffer.length - buffer_padding
+        if (buffer.length + a:buffer_padding) <= capacity
+            let capacity = capacity - buffer.length - a:buffer_padding
         else
             let left_i = left_i + 1
             break
@@ -86,8 +85,8 @@ function! s:GetVisibleRange(length_limit)
 
     for right_i in range(current_buffer_id_i + 1, len(s:buffers) - 1)
         let buffer = s:buffers[s:buffer_ids[right_i]]
-        if (buffer.length + buffer_padding) <= capacity
-            let capacity = capacity - buffer.length - buffer_padding
+        if (buffer.length + a:buffer_padding) <= capacity
+            let capacity = capacity - buffer.length - a:buffer_padding
         else
             let right_i = right_i - 1
             break
@@ -97,15 +96,16 @@ function! s:GetVisibleRange(length_limit)
     return [left_i, right_i]
 endfunction
 
-function! s:GetBufferElements(capacity)
-    let [left_i, right_i] = s:GetVisibleRange(a:capacity)
+function! s:GetBufferElements(capacity, buffer_padding)
+    let [left_i, right_i] = s:GetVisibleRange(a:capacity, a:buffer_padding)
+    " TODO: evaluate if calling this ^ twice will get better visuals
     let buffer_elems = []
 
     let trunced_left = left_i
     if trunced_left
         let left_trunc_elem = {}
         let left_trunc_elem.type = "LeftTrunc"
-        let left_trunc_elem.value = trunced_left
+        let left_trunc_elem.value = g:buffet_left_trunc_icon . " " . trunced_left
         call add(buffer_elems, left_trunc_elem)
     endif
 
@@ -124,7 +124,7 @@ function! s:GetBufferElements(capacity)
         let elem = {}
         let elem.type = type_prefix . "Buffer"
         let elem.value = buffer.name
-        let elem.buffer = buffer
+        let elem.is_modified = getbufvar(buffer_id, '&mod')
 
         call add(buffer_elems, elem)
     endfor
@@ -133,22 +133,22 @@ function! s:GetBufferElements(capacity)
     if trunced_right
         let right_trunc_elem = {}
         let right_trunc_elem.type = "RightTrunc"
-        let right_trunc_elem.value = trunced_right
+        let right_trunc_elem.value = trunced_right . " " . g:buffet_right_trunc_icon
         call add(buffer_elems, right_trunc_elem)
     endif
 
     return buffer_elems
 endfunction
 
-function! s:GetAllElements(capacity)
+function! s:GetAllElements(capacity, buffer_padding)
     let last_tab_id = tabpagenr('$')
     let current_tab_id = tabpagenr()
-    let buffer_elems = s:GetBufferElements(a:capacity)
+    let buffer_elems = s:GetBufferElements(a:capacity, a:buffer_padding)
     let tab_elems = []
 
     for tab_id in range(1, last_tab_id)
         let elem = {}
-        let elem.value = "#"
+        let elem.value = g:buffet_tab_icon
         let elem.type = "Tab"
         call add(tab_elems, elem)
         
@@ -159,23 +159,39 @@ function! s:GetAllElements(capacity)
 
     let end_elem = {"type": "End", "value": ""}
     call add(tab_elems, end_elem)
-    call add(tab_elems, end_elem)
 
     return tab_elems
 endfunction
 
 function! s:IsBufferElement(element)
-    if index(["Buffer", "ActiveBuffer", "CurrentBuffer"], element.type) >= 0
+    if index(["Buffer", "ActiveBuffer", "CurrentBuffer"], a:element.type) >= 0
         return 1
     endif
 
     return 0
 endfunction
 
+function! s:Len(string)
+    let visible_singles = substitute(a:string, '[^\d0-\d127]', "-", "g")
+
+    return len(visible_singles)
+endfunction
+
+" TODO: add mouse support
 function! s:Render()
-    " TODO: revisit
-    let capacity = &columns - 15
-    let elements = s:GetAllElements(capacity)
+    let sep_len = s:Len(g:buffet_separator)
+
+    let tabs_count = tabpagenr("$")
+    let tabs_len = (1 + s:Len(g:buffet_tab_icon) + 1 + sep_len) * tabs_count
+
+    let left_trunc_len = 1 + s:Len(g:buffet_left_trunc_icon) + 1 + 2 + 1 + sep_len
+    let right_trunc_len =  1 + 2 + 1 + s:Len(g:buffet_right_trunc_icon) + 1 + sep_len
+    let trunc_len = left_trunc_len + right_trunc_len
+
+    let capacity = &columns - tabs_len - trunc_len - 5
+    let buffer_padding = 1 + (g:buffet_use_devicons ? 1+1 : 0) + 1 + sep_len
+
+    let elements = s:GetAllElements(capacity, buffer_padding)
 
     let render = ""
     for i in range(0, len(elements) - 2)
@@ -183,13 +199,31 @@ function! s:Render()
         let elem = left
         let right = elements[i + 1]
 
+        " TODO: cleanup here
         let highlight = "%#" . g:buffet_prefix . elem.type . "#"
-        let render = render . highlight . " " . elem.value . " "
+        let render = render . highlight
 
-        if g:buffet_has_separator[left.type][right.type]
-            let render = render . "|"
+        let icon = ""
+        if g:buffet_use_devicons && s:IsBufferElement(elem)
+            let icon = " " . WebDevIconsGetFileTypeSymbol(elem.value)
         endif
+
+        let render = render . icon . " " . elem.value
+
+        if s:IsBufferElement(elem)
+            if elem.is_modified && g:buffet_modified_icon != ""
+                let render = render . g:buffet_modified_icon
+            endif
+        endif
+
+        let render = render . " "
+
+        let separator =  g:buffet_has_separator[left.type][right.type]
+        let separator_hi = "%#" . g:buffet_prefix . left.type . right.type . "#"
+        let render = render . separator_hi . separator
     endfor
+
+    let render = render . "%#" . g:buffet_prefix . "Buffer" . "#"
 
     return render
 endfunction
