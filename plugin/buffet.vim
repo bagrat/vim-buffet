@@ -201,6 +201,23 @@ augroup end
 " Set solors also at the startup
 call s:SetColors()
 
+function! buffet#bwipe_nerdtree_filter(bang, buffer)
+    let is_in_nt = 0
+    if exists("t:NERDTreeBufName")
+        let ntwinnr = bufwinnr(t:NERDTreeBufName)
+
+        if ntwinnr == winnr()
+            let is_in_nt = 1
+        endif
+    endif
+
+    if is_in_nt
+        return 1
+    endif
+endfunction
+
+let g:buffet_bwipe_filters = ["buffet#bwipe_nerdtree_filter"]
+
 command! -bang -complete=buffer -nargs=? Bw call buffet#bwipe(<q-bang>, <q-args>)
 command! -bang -complete=buffer -nargs=? Bonly call buffet#bonly(<q-bang>, <q-args>)
 

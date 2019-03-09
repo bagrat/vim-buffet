@@ -5,7 +5,7 @@ let s:buffer_ids = []
 " the tabline, thus the tabline will list starting from the first buffer. For
 " this, we keep track of the last current buffer to keep the tabline "position"
 " in the same place.
-let s:last_current_buffer_id = 1
+let s:last_current_buffer_id = -1
 
 " when you delete a buffer with the highest ID, we will never loop up there and
 " it will always stay in the buffers list, so we need to remember the largest
@@ -13,9 +13,9 @@ let s:last_current_buffer_id = 1
 let s:largest_buffer_id = 1
 
 function! buffet#update()
-    let last_buffer_id = max([bufnr('$'), s:largest_buffer_id])
+    let largest_buffer_id = max([bufnr('$'), s:largest_buffer_id])
 
-    for buffer_id in range(1, last_buffer_id)
+    for buffer_id in range(1, largest_buffer_id)
         " Check if we already keep track of this buffer
         let is_present = 0
         if has_key(s:buffers, buffer_id)
@@ -26,7 +26,7 @@ function! buffet#update()
         if !buflisted(buffer_id)
             if is_present
                 if buffer_id == s:last_current_buffer_id
-                    let s:last_current_buffer_id = s:buffer_ids[0]
+                    let s:last_current_buffer_id = -1
                 endif
 
                 " forget about this buffer
@@ -72,6 +72,8 @@ function! buffet#update()
     let current_buffer_id = bufnr('%')
     if has_key(s:buffers, current_buffer_id)
         let s:last_current_buffer_id = current_buffer_id
+    elseif s:last_current_buffer_id == -1
+        let s:last_current_buffer_id = s:buffer_ids[0]
     endif
 endfunction
 
@@ -159,7 +161,7 @@ function! s:GetAllElements(capacity, buffer_padding)
 
     for tab_id in range(1, last_tab_id)
         let elem = {}
-        let elem.value = g:buffet_tab_icon
+        let elem.value = tab_id
         let elem.type = "Tab"
         call add(tab_elems, elem)
         
@@ -192,7 +194,6 @@ function! s:GetTypeHighlight(type)
     return "%#" . g:buffet_prefix . a:type . "#"
 endfunction
 
-" TODO: add mouse support
 function! s:Render()
     let sep_len = s:Len(g:buffet_separator)
 
@@ -214,15 +215,27 @@ function! s:Render()
         let elem = left
         let right = elements[i + 1]
 
+        if elem.type == "Tab"
+            let render = render . "%" . elem.value . "T"
+        elseif s:IsBufferElement(elem) && has("nvim")
+            let render = render . "%" . bufno . "@SwitchToBuffer@"
+        endif
+
         let highlight = s:GetTypeHighlight(elem.type)
         let render = render . highlight
 
         let icon = ""
         if g:buffet_use_devicons && s:IsBufferElement(elem)
             let icon = " " . WebDevIconsGetFileTypeSymbol(elem.value)
+        elseif elem.type == "Tab"
+            let icon = " " . g:buffet_tab_icon
         endif
 
-        let render = render . icon . " " . elem.value
+        let render = render . icon
+
+        if elem.type != "Tab"
+            let render = render . " " . elem.value
+        endif
 
         if s:IsBufferElement(elem)
             if elem.is_modified && g:buffet_modified_icon != ""
@@ -235,7 +248,17 @@ function! s:Render()
         let separator =  g:buffet_has_separator[left.type][right.type]
         let separator_hi = s:GetTypeHighlight(left.type . right.type)
         let render = render . separator_hi . separator
+
+        if elem.type == "Tab" && has("nvim")
+            let render = render . "%T"
+        elseif s:IsBufferElement(elem) && has("nvim")
+            let render = render . "%T"
+        endif
     endfor
+
+    if !has("nvim")
+        let render = render . "%T"
+    endif
 
     let render = render . s:GetTypeHighlight("Buffer")
 
@@ -259,9 +282,18 @@ function! s:GetBuffer(buffer)
     return btarget
 endfunction
 
-" Inspired and based on https://vim.fandom.com/wiki/Deleting_a_buffer_without_closing_the_window
+" inspired and based on https://vim.fandom.com/wiki/Deleting_a_buffer_without_closing_the_window
 function! buffet#bwipe(bang, buffer)
     let btarget = s:GetBuffer(a:buffer)
+
+    let filters = get(g:, "buffet_bwipe_filters", [])
+    if type(filters) == type([])
+        for f in filters
+            if function(f)(a:bang, btarget) > 0
+                return
+            endif
+        endfor
+    endif
 
     if btarget < 0
         echohl ErrorMsg
