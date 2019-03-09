@@ -1,11 +1,19 @@
 let s:buffers = {}
 let s:buffer_ids = []
 
-" TODO: comment about the need of this
-let s:last_current_buffer_id = 0
+" when the focus switches to another *unlisted* buffer, it does not appear in
+" the tabline, thus the tabline will list starting from the first buffer. For
+" this, we keep track of the last current buffer to keep the tabline "position"
+" in the same place.
+let s:last_current_buffer_id = 1
+
+" when you delete a buffer with the highest ID, we will never loop up there and
+" it will always stay in the buffers list, so we need to remember the largest
+" buffer ID.
+let s:largest_buffer_id = 1
 
 function! buffet#update()
-    let last_buffer_id = bufnr('$')
+    let last_buffer_id = max([bufnr('$'), s:largest_buffer_id])
 
     for buffer_id in range(1, last_buffer_id)
         " Check if we already keep track of this buffer
@@ -24,6 +32,7 @@ function! buffet#update()
                 " forget about this buffer
                 call remove(s:buffers, buffer_id)
                 call remove(s:buffer_ids, index(s:buffer_ids, buffer_id))
+                let s:largest_buffer_id = max(s:buffer_ids)
             endif
 
             continue
@@ -36,14 +45,15 @@ function! buffet#update()
             continue
         endif
 
-        " Initialize the buffer object
         let buffer_name = bufname(buffer_id)
+
+        " Initialize the buffer object
         let buffer = {}
         let buffer.name = fnamemodify(buffer_name, ':t')
         let buffer.length = len(buffer.name)
 
         if buffer.name == ""
-            let buffer.name = "*"
+            let buffer.name = g:buffet_new_buffer_name
         endif
 
         let buffer.name_length = len(buffer.name)
@@ -55,6 +65,7 @@ function! buffet#update()
         if !is_present
             " Update the buffer IDs list
             call add(s:buffer_ids, buffer_id)
+            let s:largest_buffer_id = max([s:largest_buffer_id, buffer_id])
         endif
     endfor
 
@@ -177,6 +188,10 @@ function! s:Len(string)
     return len(visible_singles)
 endfunction
 
+function! s:GetTypeHighlight(type)
+    return "%#" . g:buffet_prefix . a:type . "#"
+endfunction
+
 " TODO: add mouse support
 function! s:Render()
     let sep_len = s:Len(g:buffet_separator)
@@ -199,8 +214,7 @@ function! s:Render()
         let elem = left
         let right = elements[i + 1]
 
-        " TODO: cleanup here
-        let highlight = "%#" . g:buffet_prefix . elem.type . "#"
+        let highlight = s:GetTypeHighlight(elem.type)
         let render = render . highlight
 
         let icon = ""
@@ -219,11 +233,11 @@ function! s:Render()
         let render = render . " "
 
         let separator =  g:buffet_has_separator[left.type][right.type]
-        let separator_hi = "%#" . g:buffet_prefix . left.type . right.type . "#"
+        let separator_hi = s:GetTypeHighlight(left.type . right.type)
         let render = render . separator_hi . separator
     endfor
 
-    let render = render . "%#" . g:buffet_prefix . "Buffer" . "#"
+    let render = render . s:GetTypeHighlight("Buffer")
 
     return render
 endfunction
@@ -231,4 +245,76 @@ endfunction
 function! buffet#render()
     call buffet#update()
     return s:Render()
+endfunction
+
+function! s:GetBuffer(buffer)
+    if empty(a:buffer)
+        let btarget = s:last_current_buffer_id
+    elseif a:buffer =~ '^\d\+$'
+        let btarget = bufnr(str2nr(a:buffer))
+    else
+        let btarget = bufnr(a:buffer)
+    endif
+
+    return btarget
+endfunction
+
+" Inspired and based on https://vim.fandom.com/wiki/Deleting_a_buffer_without_closing_the_window
+function! buffet#bwipe(bang, buffer)
+    let btarget = s:GetBuffer(a:buffer)
+
+    if btarget < 0
+        echohl ErrorMsg
+        call 'No matching buffer for ' . a:buffer
+        echohl None
+
+        return
+    endif
+
+    if empty(a:bang) && getbufvar(btarget, '&modified')
+        echohl ErrorMsg
+        echom 'No write since last change for buffer ' . btarget . " (add ! to override)"
+        echohl None
+        return
+    endif
+
+    " IDs of windows that view target buffer which we will delete.
+    let wnums = filter(range(1, winnr('$')), 'winbufnr(v:val) == btarget')
+
+    let wcurrent = winnr()
+    for w in wnums
+        " switch to window with ID 'w'
+        execute 'silent ' . w . 'wincmd w'
+
+        let prevbuf = bufnr('#')
+        " if the previous buffer is another listed buffer, switch to it...
+        if prevbuf > 0 && buflisted(prevbuf) && prevbuf != btarget
+            buffer #
+        " ...otherwise just go to the previous buffer in the list.
+        else
+            bprevious
+        endif
+
+        " if the 'bprevious' did not work, then just open a new buffer
+        if btarget == bufnr("%")
+            execute 'silent enew' . a:bang
+        endif
+    endfor
+
+    " finally wipe the tarbet buffer
+    execute 'silent bwipe' . a:bang . " " . btarget
+    " switch back to original window
+    execute 'silent ' . wcurrent . 'wincmd w'
+endfunction
+
+function! buffet#bonly(bang, buffer)
+    let btarget = s:GetBuffer(a:buffer)
+
+    for b in s:buffer_ids
+        if b == btarget
+            continue
+        endif
+
+        call buffet#bwipe(a:bang, b)
+    endfor
 endfunction

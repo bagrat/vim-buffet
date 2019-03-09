@@ -8,9 +8,12 @@ if get(g:, "buffet_always_show_tabline", 1)
     set showtabline=2
 endif
 
-" TODO: https://github.com/bagrat/vim-buffet/issues/6
+if has("gui")
+    if !get(g:, "buffet_use_gui_tablne", 0)
+        set guioptions-=e
+    endif
+endif
 
-let g:buffet_powerline_separators = 1
 if get(g:, "buffet_powerline_separators", 0)
     let g:buffet_powerline_separators = 1
     let g:buffet_noseparator = "\ue0b0"
@@ -21,7 +24,6 @@ else
     let g:buffet_separator = get(g:, "buffet_separator", "|")
 endif
 
-" let g:buffet_use_devicons = 0
 if get(g:, "buffet_use_devicons", 1)
     if !exists("*WebDevIconsGetFileTypeSymbol")
         let g:buffet_use_devicons = 0
@@ -42,6 +44,10 @@ endif
 
 if !exists("g:buffet_right_trunc_icon")
     let g:buffet_right_trunc_icon = ">"
+endif
+
+if !exists("g:buffet_new_buffer_name")
+    let g:buffet_new_buffer_name = "*"
 endif
 
 if !exists("g:buffet_tab_icon")
@@ -90,9 +96,6 @@ let g:buffet_has_separator = {
             \         "Tab": g:buffet_separator,
             \         "End": g:buffet_separator,
             \     },
-            \     "End": {
-            \         "End": g:buffet_noseparator,
-            \     },
             \ }
 
 function! s:GetHiAttr(name, attr)
@@ -114,10 +117,25 @@ function! s:SetHi(name, fg, bg)
         let vim_mode = "gui"
     endif
 
-    let bg_spec = vim_mode . "bg=" . a:bg
-    let fg_spec = vim_mode . "fg=" . a:fg
-    let spec = bg_spec . " " . fg_spec
-    exec "hi! " . a:name . " " . spec
+    let spec = ""
+    if a:fg != ""
+        let fg_spec = vim_mode . "fg=" . a:fg
+        let spec = fg_spec
+    endif
+
+    if a:bg != ""
+        let bg_spec = vim_mode . "bg=" . a:bg
+
+        if spec != ""
+            let bg_spec = " " . bg_spec
+        endif
+
+        let spec = spec . bg_spec
+    endif
+
+    if spec != ""
+        exec "hi! " . a:name . " " . spec
+    endif
 endfunction
 
 function! s:LinkHi(name, target)
@@ -125,17 +143,20 @@ function! s:LinkHi(name, target)
 endfunction
 
 function! s:SetColors()
-    " TODO: try to match user's colorscheme
-    call s:LinkHi("BuffetBuffer", "NonText")
-    call s:LinkHi("BuffetActiveBuffer", "Cursor")
-    call s:LinkHi("BuffetCurrentBuffer", "Search")
-    call s:LinkHi("BuffetTab", "StatusLineTerm")
-    call s:LinkHi("BuffetEnd", "TablineFill")
-    call s:LinkHi("BuffetLeftTrunc", "ToolbarButton")
-    call s:LinkHi("BuffetRightTrunc", "ToolbarButton")
-
     if exists("*g:BuffetSetCustomColors")
         call g:BuffetSetCustomColors()
+    else
+        " TODO: try to match user's colorscheme
+        " Issue: https://github.com/bagrat/vim-buffet/issues/5
+        " if get(g:, "buffet_match_color_scheme", 1)
+ 
+        hi! BuffetCurrentBuffer cterm=NONE ctermbg=2 ctermfg=8 guibg=#00FF00 guifg=#000000
+        hi! BuffetActiveBuffer cterm=NONE ctermbg=10 ctermfg=2 guibg=#999999 guifg=#00FF00
+        hi! BuffetBuffer cterm=NONE ctermbg=10 ctermfg=8 guibg=#999999 guifg=#000000
+        hi! BuffetLeftTrunc cterm=bold ctermbg=11 ctermfg=8 guibg=#999999 guifg=#000000
+        hi! BuffetRightTrunc cterm=bold ctermbg=11 ctermfg=8 guibg=#999999 guifg=#000000
+        hi! BuffetTab cterm=NONE ctermbg=4 ctermfg=8 guibg=#0000FF guifg=#000000
+        hi! link BuffetEnd BuffetBuffer
     endif
 
     for left in keys(g:buffet_has_separator)
@@ -179,5 +200,8 @@ augroup end
 
 " Set solors also at the startup
 call s:SetColors()
+
+command! -bang -complete=buffer -nargs=? Bw call buffet#bwipe(<q-bang>, <q-args>)
+command! -bang -complete=buffer -nargs=? Bonly call buffet#bonly(<q-bang>, <q-args>)
 
 set tabline=%!buffet#render()
