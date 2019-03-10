@@ -1,5 +1,10 @@
 # vim-buffet
 
+**Note: this plugin has been renamed from `vim-workspace` and thus has also
+different prefix for the configuration and commands. Please revisit the README
+and use the new names of the configuration parameters, highlight groups and
+commands. Sorry for inconvenience.**
+
 If you are new to the Vim world, then welcome, and start by learning Vim's
 notions of [buffers, windows](http://vimdoc.sourceforge.net/htmldoc/windows.html)
 and [tabpages](http://vimdoc.sourceforge.net/htmldoc/tabpage.html).
