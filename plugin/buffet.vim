@@ -134,12 +134,12 @@ function! s:SetHi(name, fg, bg)
     endif
 
     if spec != ""
-        exec "hi! " . a:name . " " . spec
+        exec "silent hi! " . a:name . " " . spec
     endif
 endfunction
 
 function! s:LinkHi(name, target)
-    exec "hi! link " . a:name . " " . a:target
+    exec "silent hi! link " . a:name . " " . a:target
 endfunction
 
 function! s:SetColors()
@@ -200,6 +200,12 @@ augroup end
 
 " Set solors also at the startup
 call s:SetColors()
+
+if has("nvim")
+    function! SwitchToBuffer(buffer_id, clicks, btn, flags)
+        exec "silent buffer " . a:buffer_id
+    endfunction
+endif
 
 function! buffet#bwipe_nerdtree_filter(bang, buffer)
     let is_in_nt = 0

@@ -143,6 +143,7 @@ function! s:GetBufferElements(capacity, buffer_padding)
         let elem = {}
         let elem.type = type_prefix . "Buffer"
         let elem.value = buffer.name
+        let elem.buffer_id = buffer_id
         let elem.is_modified = getbufvar(buffer_id, '&mod')
 
         call add(buffer_elems, elem)
@@ -224,7 +225,7 @@ function! s:Render()
         if elem.type == "Tab"
             let render = render . "%" . elem.value . "T"
         elseif s:IsBufferElement(elem) && has("nvim")
-            let render = render . "%" . bufno . "@SwitchToBuffer@"
+            let render = render . "%" . elem.buffer_id . "@SwitchToBuffer@"
         endif
 
         let highlight = s:GetTypeHighlight(elem.type)
