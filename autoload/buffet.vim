@@ -45,6 +45,12 @@ function! buffet#update()
             continue
         endif
 
+        " hide terminal buffers
+        if getbufvar(buffer_id, "&buftype", "") == "terminal"
+            call setbufvar(buffer_id, "&buflisted", 0)
+            continue
+        endif
+
         let buffer_name = bufname(buffer_id)
 
         " Initialize the buffer object
