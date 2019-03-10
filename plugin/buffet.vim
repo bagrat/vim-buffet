@@ -143,20 +143,21 @@ function! s:LinkHi(name, target)
 endfunction
 
 function! s:SetColors()
+    " TODO: try to match user's colorscheme
+    " Issue: https://github.com/bagrat/vim-buffet/issues/5
+    " if get(g:, "buffet_match_color_scheme", 1)
+
+    hi! BuffetCurrentBuffer cterm=NONE ctermbg=2 ctermfg=8 guibg=#00FF00 guifg=#000000
+    hi! BuffetActiveBuffer cterm=NONE ctermbg=10 ctermfg=2 guibg=#999999 guifg=#00FF00
+    hi! BuffetBuffer cterm=NONE ctermbg=10 ctermfg=8 guibg=#999999 guifg=#000000
+    hi! BuffetTrunc cterm=bold ctermbg=11 ctermfg=8 guibg=#999999 guifg=#000000
+    hi! BuffetTab cterm=NONE ctermbg=4 ctermfg=8 guibg=#0000FF guifg=#000000
+    hi! link BuffetLeftTrunc BuffetTrunc
+    hi! link BuffetRightTrunc BuffetTrunc
+    hi! link BuffetEnd BuffetBuffer
+
     if exists("*g:BuffetSetCustomColors")
         call g:BuffetSetCustomColors()
-    else
-        " TODO: try to match user's colorscheme
-        " Issue: https://github.com/bagrat/vim-buffet/issues/5
-        " if get(g:, "buffet_match_color_scheme", 1)
- 
-        hi! BuffetCurrentBuffer cterm=NONE ctermbg=2 ctermfg=8 guibg=#00FF00 guifg=#000000
-        hi! BuffetActiveBuffer cterm=NONE ctermbg=10 ctermfg=2 guibg=#999999 guifg=#00FF00
-        hi! BuffetBuffer cterm=NONE ctermbg=10 ctermfg=8 guibg=#999999 guifg=#000000
-        hi! BuffetLeftTrunc cterm=bold ctermbg=11 ctermfg=8 guibg=#999999 guifg=#000000
-        hi! BuffetRightTrunc cterm=bold ctermbg=11 ctermfg=8 guibg=#999999 guifg=#000000
-        hi! BuffetTab cterm=NONE ctermbg=4 ctermfg=8 guibg=#0000FF guifg=#000000
-        hi! link BuffetEnd BuffetBuffer
     endif
 
     for left in keys(g:buffet_has_separator)
