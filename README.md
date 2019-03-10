@@ -8,7 +8,8 @@ commands. Sorry for inconvenience.**
 If you are new to the Vim world, then welcome, and start by learning Vim's
 notions of [buffers, windows](http://vimdoc.sourceforge.net/htmldoc/windows.html)
 and [tabpages](http://vimdoc.sourceforge.net/htmldoc/tabpage.html).
-But if you are an experienced Vim user, you might got tired of `bn/bp/ls/Ctrl-^`.
+
+But if you are an experienced Vim user, you might have got tired of `bn/bp/ls/Ctrl-^`.
 
 `vim-buffet` brings the IDE-like tabs into Vim, for easy navigation, and a nice,
 customizable look. It takes your buffers and tabs, and shows them combined in the
@@ -52,7 +53,7 @@ Use your favourite plugin manager to install `vim-buffet`. If you do not have an
 preference or have not decided yet, I would recommend [Plug](https://github.com/junegunn/vim-plug).
 
 ```
-Plug 'bagrat/`vim-buffet`'
+Plug 'bagrat/`vim-buffet`
 ```
 
 After installation, `vim-buffet` is enabled by default, so whenever you restart
