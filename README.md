@@ -16,7 +16,7 @@ tabline appears.
 
 <h3 align="center">
     <img
-        src="https://raw.githubusercontent.com/bagrat/vim-buffet/60fadaeee65368f7d2d0a62b4dc452bf9ca99113/demo.jpg"
+        src="https://raw.githubusercontent.com/bagrat/vim-buffet/e915a9f0627228c317a7498c800208813c0298c3/demo.png"
         alt="vim-buffet Screenshot"
     />
 </h3>
@@ -36,7 +36,7 @@ below.*
 
 <h3 align="center">
     <img
-        src="https://raw.githubusercontent.com/bagrat/vim-buffet/47741bfed48fe73b1ebcf2653e6be60379477c53/demo2.jpg"i
+        src="https://raw.githubusercontent.com/bagrat/vim-buffet/e915a9f0627228c317a7498c800208813c0298c3/demo2.png"
         alt="vim-buffet Screenshot"
     />
 </h3>
