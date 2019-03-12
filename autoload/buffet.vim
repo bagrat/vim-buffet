@@ -78,13 +78,18 @@ function! buffet#update()
     let current_buffer_id = bufnr('%')
     if has_key(s:buffers, current_buffer_id)
         let s:last_current_buffer_id = current_buffer_id
-    elseif s:last_current_buffer_id == -1
+    elseif s:last_current_buffer_id == -1 && len(s:buffer_ids) > 0
         let s:last_current_buffer_id = s:buffer_ids[0]
     endif
 endfunction
 
 function! s:GetVisibleRange(length_limit, buffer_padding)
     let current_buffer_id = s:last_current_buffer_id
+
+    if current_buffer_id == -1
+        return [-1, -1]
+    endif
+
     let current_buffer_id_i = index(s:buffer_ids, current_buffer_id)
 
     let current_buffer = s:buffers[current_buffer_id]
@@ -118,6 +123,11 @@ endfunction
 function! s:GetBufferElements(capacity, buffer_padding)
     let [left_i, right_i] = s:GetVisibleRange(a:capacity, a:buffer_padding)
     " TODO: evaluate if calling this ^ twice will get better visuals
+
+    if left_i < 0 || right_i < 0
+        return []
+    endif
+
     let buffer_elems = []
 
     let trunced_left = left_i
@@ -150,7 +160,7 @@ function! s:GetBufferElements(capacity, buffer_padding)
     endfor
 
     let trunced_right = (len(s:buffers) - right_i - 1)
-    if trunced_right
+    if trunced_right > 0
         let right_trunc_elem = {}
         let right_trunc_elem.type = "RightTrunc"
         let right_trunc_elem.value = trunced_right . " " . g:buffet_right_trunc_icon
@@ -278,7 +288,7 @@ function! buffet#render()
 endfunction
 
 function! s:GetBuffer(buffer)
-    if empty(a:buffer)
+    if empty(a:buffer) && s:last_current_buffer_id >= 0
         let btarget = s:last_current_buffer_id
     elseif a:buffer =~ '^\d\+$'
         let btarget = bufnr(str2nr(a:buffer))
