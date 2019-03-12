@@ -53,7 +53,7 @@ Use your favourite plugin manager to install `vim-buffet`. If you do not have an
 preference or have not decided yet, I would recommend [Plug](https://github.com/junegunn/vim-plug).
 
 ```
-Plug 'bagrat/`vim-buffet`
+Plug 'bagrat/vim-buffet'
 ```
 
 After installation, `vim-buffet` is enabled by default, so whenever you restart
