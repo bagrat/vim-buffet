@@ -59,9 +59,6 @@ let g:buffet_has_separator = {
             \     "Tab": {
             \         "Tab": g:buffet_separator,
             \         "LeftTrunc": g:buffet_separator,
-            \         "Buffer": g:buffet_separator,
-            \         "CurrentBuffer": g:buffet_separator,
-            \         "ActiveBuffer": g:buffet_separator,
             \         "End" : g:buffet_separator,
             \     },
             \     "LeftTrunc": {
@@ -73,30 +70,29 @@ let g:buffet_has_separator = {
             \         "Tab": g:buffet_separator,
             \         "End": g:buffet_separator,
             \     },
-            \     "Buffer": {
-            \         "Buffer": g:buffet_separator,
-            \         "ActiveBuffer": g:buffet_separator,
-            \         "CurrentBuffer": g:buffet_separator,
-            \         "RightTrunc": g:buffet_separator,
-            \         "Tab": g:buffet_separator,
-            \         "End": g:buffet_separator,
-            \     },
-            \     "ActiveBuffer": {
-            \         "Buffer": g:buffet_separator,
-            \         "ActiveBuffer": g:buffet_separator,
-            \         "CurrentBuffer": g:buffet_separator,
-            \         "RightTrunc": g:buffet_separator,
-            \         "Tab": g:buffet_separator,
-            \         "End": g:buffet_separator,
-            \     },
-            \     "CurrentBuffer": {
-            \         "Buffer": g:buffet_separator,
-            \         "ActiveBuffer": g:buffet_separator,
-            \         "RightTrunc": g:buffet_separator,
-            \         "Tab": g:buffet_separator,
-            \         "End": g:buffet_separator,
-            \     },
             \ }
+
+let g:buffet_buffer_types = [
+            \    "Buffer",
+            \    "ActiveBuffer",
+            \    "CurrentBuffer",
+            \    "ModBuffer",
+            \    "ModActiveBuffer",
+            \    "ModCurrentBuffer",
+            \ ]
+
+for s:type in g:buffet_buffer_types
+    let g:buffet_has_separator["Tab"][s:type] = g:buffet_separator
+    let g:buffet_has_separator[s:type] = {
+                \     "RightTrunc": g:buffet_separator,
+                \     "Tab": g:buffet_separator,
+                \     "End": g:buffet_separator,
+                \ }
+
+    for s:t in g:buffet_buffer_types
+        let g:buffet_has_separator[s:type][s:t] = g:buffet_separator
+    endfor
+endfor
 
 function! s:GetHiAttr(name, attr)
     let vim_mode = "cterm"
@@ -150,8 +146,14 @@ function! s:SetColors()
     hi! BuffetCurrentBuffer cterm=NONE ctermbg=2 ctermfg=8 guibg=#00FF00 guifg=#000000
     hi! BuffetActiveBuffer cterm=NONE ctermbg=10 ctermfg=2 guibg=#999999 guifg=#00FF00
     hi! BuffetBuffer cterm=NONE ctermbg=10 ctermfg=8 guibg=#999999 guifg=#000000
+
+    hi! link BuffetModCurrentBuffer BuffetCurrentBuffer
+    hi! link BuffetModActiveBuffer BuffetActiveBuffer
+    hi! link BuffetModBuffer BuffetBuffer
+
     hi! BuffetTrunc cterm=bold ctermbg=11 ctermfg=8 guibg=#999999 guifg=#000000
     hi! BuffetTab cterm=NONE ctermbg=4 ctermfg=8 guibg=#0000FF guifg=#000000
+
     hi! link BuffetLeftTrunc BuffetTrunc
     hi! link BuffetRightTrunc BuffetTrunc
     hi! link BuffetEnd BuffetBuffer

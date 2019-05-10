@@ -151,10 +151,15 @@ function! s:GetBufferElements(capacity, buffer_padding)
         endif
 
         let elem = {}
-        let elem.type = type_prefix . "Buffer"
         let elem.value = buffer.name
         let elem.buffer_id = buffer_id
         let elem.is_modified = getbufvar(buffer_id, '&mod')
+
+        if elem.is_modified
+            let type_prefix = "Mod" . type_prefix
+        endif
+
+        let elem.type = type_prefix . "Buffer"
 
         call add(buffer_elems, elem)
     endfor
@@ -194,7 +199,7 @@ function! s:GetAllElements(capacity, buffer_padding)
 endfunction
 
 function! s:IsBufferElement(element)
-    if index(["Buffer", "ActiveBuffer", "CurrentBuffer"], a:element.type) >= 0
+    if index(g:buffet_buffer_types, a:element.type) >= 0
         return 1
     endif
 

@@ -157,6 +157,10 @@ names:
 * `BuffetActiveBuffer` - an active buffer (a non-current buffer visible in
   a non-current window).
 * `BuffetBuffer` - a non-current and non-active buffer.
+* `BuffetModCurrentBuffer` - the current buffer when modified.
+* `BuffetModActiveBuffer` - a modified active buffer (a non-current buffer visible in
+  a non-current window).
+* `BuffetModBuffer` - a modified non-current and non-active buffer.
 * `BuffetTrunc` - the truncation indicator (count of truncated buffers
   from the left or right).
 * `BuffetTab` - a tab.
