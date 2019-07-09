@@ -151,6 +151,7 @@ function! s:GetBufferElements(capacity, buffer_padding)
         endif
 
         let elem = {}
+        let elem.index = i + 1
         let elem.value = buffer.name
         let elem.buffer_id = buffer_id
         let elem.is_modified = getbufvar(buffer_id, '&mod')
@@ -245,6 +246,10 @@ function! s:Render()
 
         let highlight = s:GetTypeHighlight(elem.type)
         let render = render . highlight
+
+        if g:buffet_show_index && s:IsBufferElement(elem)
+            let render = render . " " . elem.index
+        endif
 
         let icon = ""
         if g:buffet_use_devicons && s:IsBufferElement(elem)
