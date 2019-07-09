@@ -309,6 +309,18 @@ function! s:GetBuffer(buffer)
     return btarget
 endfunction
 
+function! buffet#bswitch(index)
+    let i = str2nr(a:index) - 1
+    if i < 0 || i > len(s:buffer_ids) - 1
+        echohl ErrorMsg
+        echom "Invalid buffer index"
+        echohl None
+        return
+    endif
+    let buffer_id = s:buffer_ids[i]
+    execute 'silent buffer ' . buffer_id
+endfunction
+
 " inspired and based on https://vim.fandom.com/wiki/Deleting_a_buffer_without_closing_the_window
 function! buffet#bwipe(bang, buffer)
     let btarget = s:GetBuffer(a:buffer)
