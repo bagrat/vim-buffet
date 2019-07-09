@@ -71,6 +71,27 @@ handy commands to manipulate the buffers:
   in the list that has unsaved changes, those will not be wiped. To ignore any
   changes and forcibly wipe all buffers except the current one, use `Bonly!`.
 
+## Mappings
+
+Mappings for switching buffers are also provided. You just need to add the following
+mappings to your Vimrc file:
+
+```
+nmap <leader>1 <Plug>BuffetSwitch(1)
+nmap <leader>2 <Plug>BuffetSwitch(2)
+nmap <leader>3 <Plug>BuffetSwitch(3)
+nmap <leader>4 <Plug>BuffetSwitch(4)
+nmap <leader>5 <Plug>BuffetSwitch(5)
+nmap <leader>6 <Plug>BuffetSwitch(6)
+nmap <leader>7 <Plug>BuffetSwitch(7)
+nmap <leader>8 <Plug>BuffetSwitch(8)
+nmap <leader>9 <Plug>BuffetSwitch(9)
+nmap <leader>0 <Plug>BuffetSwitch(10)
+```
+
+This will allow you to switch between buffers 1 - 10. You can get more `<Plug>`
+mappings, or disable it completely, by configuring the `g:buffet_max_plug` option.
+
 ## Configuration
 
 There are some configuration options that make it possible to customize how the
@@ -94,6 +115,22 @@ Vimrc file, using `let <optiona-name> = <option-value>`:
   Default:
   ```
   let g:buffet_separator = ""
+  ```
+
+* `g:buffet_show_index` - if set to `1`, show index before each buffer name. Index is
+  useful for switching between buffers quickly.
+
+  Default:
+  ```
+  let g:buffet_show_index = 0
+  ```
+
+* `g:buffet_max_plug` - the maximum number of `<Plug>BuffetSwitch` provided. Mapping
+  will be disabled if the option is set to `0`.
+
+  Default:
+  ```
+  let g:buffet_max_plug = 10
   ```
 
 * `g:buffet_use_devicons` - if set to `1` and
