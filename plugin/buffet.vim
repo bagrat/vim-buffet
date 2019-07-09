@@ -24,11 +24,9 @@ else
     let g:buffet_separator = get(g:, "buffet_separator", "|")
 endif
 
-if get(g:, "buffet_show_index", 0)
-    let g:buffet_show_index = 1
-else
-    let g:buffet_show_index = 0
-endif
+let g:buffet_show_index = get(g:, "buffet_show_index", 0)
+
+let g:buffet_max_plug = get(g:, "buffet_max_plug", 10)
 
 if get(g:, "buffet_use_devicons", 1)
     if !exists("*WebDevIconsGetFileTypeSymbol")
@@ -233,7 +231,10 @@ endfunction
 
 let g:buffet_bwipe_filters = ["buffet#bwipe_nerdtree_filter"]
 
-command! -nargs=? Bswitch call buffet#bswitch(<q-args>)
+for s:n in range(1, g:buffet_max_plug)
+    execute printf("noremap <silent> <Plug>BuffetSwitch(%d) :call buffet#bswitch(%d)<cr>", s:n, s:n)
+endfor
+
 command! -bang -complete=buffer -nargs=? Bw call buffet#bwipe(<q-bang>, <q-args>)
 command! -bang -complete=buffer -nargs=? Bonly call buffet#bonly(<q-bang>, <q-args>)
 
