@@ -123,7 +123,7 @@ Vimrc file, using `let <optiona-name> = <option-value>`:
   let g:buffet_new_buffer_name = "*"
   ```
 
-* `g:buffet_new_buffer_name` - the character to be shown by the name of
+* `g:buffet_modified_icon` - the character to be shown by the name of
   a modified buffer.
   Default:
 
