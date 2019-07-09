@@ -233,6 +233,7 @@ endfunction
 
 let g:buffet_bwipe_filters = ["buffet#bwipe_nerdtree_filter"]
 
+command! -nargs=? Bswitch call buffet#bswitch(<q-args>)
 command! -bang -complete=buffer -nargs=? Bw call buffet#bwipe(<q-bang>, <q-args>)
 command! -bang -complete=buffer -nargs=? Bonly call buffet#bonly(<q-bang>, <q-args>)
 
