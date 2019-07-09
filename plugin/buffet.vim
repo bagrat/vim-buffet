@@ -24,6 +24,12 @@ else
     let g:buffet_separator = get(g:, "buffet_separator", "|")
 endif
 
+if get(g:, "buffet_show_index", 0)
+    let g:buffet_show_index = 1
+else
+    let g:buffet_show_index = 0
+endif
+
 if get(g:, "buffet_use_devicons", 1)
     if !exists("*WebDevIconsGetFileTypeSymbol")
         let g:buffet_use_devicons = 0
