@@ -45,8 +45,9 @@ function! buffet#update()
             continue
         endif
 
-        " hide terminal buffers
-        if getbufvar(buffer_id, "&buftype", "") == "terminal"
+        " hide terminal and quickfix buffers
+        let buffer_type = getbufvar(buffer_id, "&buftype", "")
+        if index(["terminal", "quickfix"], buffer_type) >= 0
             call setbufvar(buffer_id, "&buflisted", 0)
             continue
         endif
