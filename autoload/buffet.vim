@@ -193,7 +193,7 @@ function! s:GetAllElements(capacity, buffer_padding)
         let elem.value = tab_id
         let elem.type = "Tab"
         call add(tab_elems, elem)
-        
+
         if tab_id == current_tab_id
             let tab_elems = tab_elems + buffer_elems
         endif
