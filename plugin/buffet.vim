@@ -4,9 +4,12 @@ endif
 
 let g:buffet_loaded = 1
 
-if get(g:, "buffet_always_show_tabline", 1)
-    set showtabline=2
-endif
+let g:buffet_always_show_tabline = get(g:, "buffet_always_show_tabline", 1)
+
+augroup buffet_show_tabline
+    autocmd!
+    autocmd VimEnter,BufAdd,TabNew * set showtabline=2
+augroup END
 
 if has("gui")
     if !get(g:, "buffet_use_gui_tablne", 0)
