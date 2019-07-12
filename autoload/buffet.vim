@@ -12,6 +12,9 @@ let s:last_current_buffer_id = -1
 " buffer ID.
 let s:largest_buffer_id = 1
 
+" either a slash or backslash
+let s:path_separator = fnamemodify(getcwd(),':p')[-1:]
+
 function! buffet#update()
     let largest_buffer_id = max([bufnr('$'), s:largest_buffer_id])
 
@@ -53,18 +56,14 @@ function! buffet#update()
         endif
 
         let buffer_name = bufname(buffer_id)
+        let buffer_head = fnamemodify(buffer_name, ':p:h')
+        let buffer_tail = fnamemodify(buffer_name, ':t')
 
         " Initialize the buffer object
         let buffer = {}
-        let buffer.name = fnamemodify(buffer_name, ':t')
-        let buffer.length = len(buffer.name)
-
-        if buffer.name == ""
-            let buffer.name = g:buffet_new_buffer_name
-        endif
-
-        let buffer.name_length = len(buffer.name)
-        let buffer.is_active = (bufwinnr(buffer_id) > 0)
+        let buffer.head = split(buffer_head, s:path_separator)
+        let buffer.not_new = len(buffer_tail)
+        let buffer.tail = buffer.not_new ? buffer_tail : g:buffet_new_buffer_name 
 
         " Update the buffers map
         let s:buffers[buffer_id] = buffer
@@ -75,6 +74,42 @@ function! buffet#update()
             let s:largest_buffer_id = max([s:largest_buffer_id, buffer_id])
         endif
     endfor
+
+    let buffer_name_count = {}
+
+    " Set initial buffer name, and record occurrences
+    for buffer in values(s:buffers)
+        let buffer.index = -1
+        let buffer.name = buffer.tail
+        let buffer.length = len(buffer.name)
+
+        if buffer.not_new
+            let current_count = get(buffer_name_count, buffer.name, 0)
+            let buffer_name_count[buffer.name] = current_count + 1
+        endif
+    endfor
+
+    " Disambiguate buffer names with multiple occurrences
+    while len(filter(buffer_name_count, 'v:val > 1'))
+        let ambiguous = buffer_name_count
+        let buffer_name_count = {}
+
+        for buffer in values(s:buffers)
+            if has_key(ambiguous, buffer.name)
+                let buffer_path = buffer.head[buffer.index:]
+                call add(buffer_path, buffer.tail)
+
+                let buffer.index -= 1
+                let buffer.name = join(buffer_path, s:path_separator)
+                let buffer.length = len(buffer.name)
+            endif
+
+            if buffer.not_new
+                let current_count = get(buffer_name_count, buffer.name, 0)
+                let buffer_name_count[buffer.name] = current_count + 1
+            endif
+        endfor
+    endwhile
 
     let current_buffer_id = bufnr('%')
     if has_key(s:buffers, current_buffer_id)
