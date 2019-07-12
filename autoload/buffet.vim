@@ -85,7 +85,7 @@ function! buffet#update()
 
     " Hide tabline if only one buffer and tab open
     if !g:buffet_always_show_tabline && len(s:buffer_ids) == 1 && tabpagenr("$") == 1
-      set showtabline=0
+        set showtabline=0
     endif
 endfunction
 

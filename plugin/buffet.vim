@@ -7,8 +7,8 @@ let g:buffet_loaded = 1
 let g:buffet_always_show_tabline = get(g:, "buffet_always_show_tabline", 1)
 
 augroup buffet_show_tabline
-  autocmd!
-  autocmd VimEnter,BufAdd,TabNew * set showtabline=2
+    autocmd!
+    autocmd VimEnter,BufAdd,TabNew * set showtabline=2
 augroup END
 
 if has("gui")
