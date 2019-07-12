@@ -102,6 +102,14 @@ tabline works and looks like.
 The following is the list of available options, that should be set in your
 Vimrc file, using `let <optiona-name> = <option-value>`:
 
+* `g:buffet_always_show_tabline` - if set to `0`, the tabline will only be shown if
+  there is more than one buffer or tab open.
+
+  Default:
+  ```
+  let g:buffet_always_show_tabline = 1
+  ```
+
 * `g:buffet_powerline_separators` - if set to `1`, use powerline separators
   in between buffers and tabs in the tabline (see the first screenshot).
 
