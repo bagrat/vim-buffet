@@ -82,6 +82,11 @@ function! buffet#update()
     elseif s:last_current_buffer_id == -1 && len(s:buffer_ids) > 0
         let s:last_current_buffer_id = s:buffer_ids[0]
     endif
+
+    " Hide tabline if only one buffer and tab open
+    if !g:buffet_always_show_tabline && len(s:buffer_ids) == 1 && tabpagenr("$") == 1
+      set showtabline=0
+    endif
 endfunction
 
 function! s:GetVisibleRange(length_limit, buffer_padding)
