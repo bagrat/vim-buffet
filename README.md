@@ -260,6 +260,17 @@ Just add this mapping to your Vimrc:
 map <C-t> :tab split<CR>
 ```
 
+#### **I can only see the current active buffer in the tabline**
+
+The reason is that you probably use some statusline plugin (e.g. lightline,
+airline) that also has tabline support, which overrides vim-buffet. All you need
+to do is disable the tabline of the statusline plugin. For Lightline, it should
+be something like this:
+
+```
+let g:lightline.enable.tabline = 0
+```
+
 ## License
 
 See
