@@ -1,4 +1,13 @@
+" buffers - 
+" +buffer_id | Number: key
+"
+" @head | List: buffer's directory abspath, split by `path_separator`
+" @not_new | Number: it is not new if len(@tail) > 0
+" @tail | String: buffer's name (file name)
+" ---
 let s:buffers = {}
+
+
 let s:buffer_ids = []
 
 " when the focus switches to another *unlisted* buffer, it does not appear in
@@ -20,10 +29,7 @@ function! buffet#update()
 
     for buffer_id in range(1, largest_buffer_id)
         " Check if we already keep track of this buffer
-        let is_present = 0
-        if has_key(s:buffers, buffer_id)
-            let is_present = 1
-        endif
+        let is_present = has_key(s:buffers, buffer_id) ? 1 : 0
 
         " Skip if a buffer with this id does not exist
         if !buflisted(buffer_id)
@@ -49,8 +55,7 @@ function! buffet#update()
         endif
 
         " hide terminal and quickfix buffers
-        let buffer_type = getbufvar(buffer_id, "&buftype", "")
-        if index(["terminal", "quickfix"], buffer_type) >= 0
+        if s:IsTermOrQuickfix(buffer_id)
             call setbufvar(buffer_id, "&buflisted", 0)
             continue
         endif
@@ -63,7 +68,7 @@ function! buffet#update()
         let buffer = {}
         let buffer.head = split(buffer_head, s:path_separator)
         let buffer.not_new = len(buffer_tail)
-        let buffer.tail = buffer.not_new ? buffer_tail : g:buffet_new_buffer_name 
+        let buffer.tail = buffer.not_new ? buffer_tail : g:buffet_new_buffer_name
 
         " Update the buffers map
         let s:buffers[buffer_id] = buffer
@@ -123,6 +128,22 @@ function! buffet#update()
         set showtabline=0
     endif
 endfunction
+
+" IsTermOrQuickfix - Return TRUE (1) if it's a Terminal or Quickfix buffer
+" @bufid | Number: Buffed Id is used to check
+" => | Boolean (Number?):
+" ---
+function! s:IsTermOrQuickfix(bufid) abort
+    let buffer_type = getbufvar(a:bufid, "&buftype", "")
+    if index(["terminal", "quickfix"], buffer_type) >= 0
+        return 1
+    endif
+    return 0
+endfunction
+
+
+
+
 
 function! s:GetVisibleRange(length_limit, buffer_padding)
     let current_buffer_id = s:last_current_buffer_id
