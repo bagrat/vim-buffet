@@ -1,13 +1,14 @@
-" buffers - 
-" +buffer_id | Number: key
+" buffers - Display buffers only
+" + | Number: buffer_id is the key
 "
 " @head | List: buffer's directory abspath, split by `path_separator`
 " @not_new | Number: it is not new if len(@tail) > 0
 " @tail | String: buffer's name (file name)
 " ---
+" @index | Number:
+" @name | String: file name to display on tabline (@tail)
+" @length | Number: file name length
 let s:buffers = {}
-
-
 let s:buffer_ids = []
 
 " when the focus switches to another *unlisted* buffer, it does not appear in
@@ -23,6 +24,8 @@ let s:largest_buffer_id = 1
 
 " either a slash or backslash
 let s:path_separator = fnamemodify(getcwd(),':p')[-1:]
+
+" ======================
 
 function! buffet#update()
     let largest_buffer_id = max([bufnr('$'), s:largest_buffer_id])
@@ -50,11 +53,14 @@ function! buffet#update()
         " If this buffer is already tracked and listed, we're good.
         " In case if it is the only buffer, still update, because an empty new
         " buffer id is being replaced by a buffer for an existing file.
+        "
+        " FIXME: You need to learn more about this ? But I don't think we need
+        " this
         if is_present && len(s:buffers) > 1
             continue
         endif
 
-        " hide terminal and quickfix buffers
+        " Hide & skip terminal and quickfix buffers
         if s:IsTermOrQuickfix(buffer_id)
             call setbufvar(buffer_id, "&buflisted", 0)
             continue
@@ -66,22 +72,24 @@ function! buffet#update()
         if !is_present
             " Update the buffer IDs list
             call add(s:buffer_ids, buffer_id)
+
+            " FIXME: Wtf is this ? Why though ?
             let s:largest_buffer_id = max([s:largest_buffer_id, buffer_id])
+
         endif
     endfor
 
+    " --- Phase 2 ---
     let buffer_name_count = {}
 
     " Set initial buffer name, and record occurrences
     for buffer in values(s:buffers)
-        let buffer.index = -1
-        let buffer.name = buffer.tail
-        let buffer.length = len(buffer.name)
+        let composed_buf = s:InitAndRecordOcc(buffer)
+        let buffer = extend(buffer, composed_buf['buffer'], 'force')
 
-        if buffer.not_new
-            let current_count = get(buffer_name_count, buffer.name, 0)
-            let buffer_name_count[buffer.name] = current_count + 1
-        endif
+        let buffer_name_count = extend( buffer_name_count,
+            \   composed_buf['buffer_name_count']
+            \   'force')
     endfor
 
     " Disambiguate buffer names with multiple occurrences
@@ -119,8 +127,10 @@ function! buffet#update()
     endif
 endfunction
 
+
 " IsTermOrQuickfix - Return TRUE (1) if it's a Terminal or Quickfix buffer
-" @bufid | Number: Buffed Id is used to check
+" @bufid | Number: buffer_id is used to check
+"
 " => | Boolean (Number?):
 " ---
 function! s:IsTermOrQuickfix(bufid) abort
@@ -131,12 +141,15 @@ function! s:IsTermOrQuickfix(bufid) abort
     return 0
 endfunction
 
+
 " ComposeBuffer - Compose @head, @not_new, @tail of buffers{} based on buffer_id
 " @bufid | Number: buffer_id
+"
 " => buffer{} | Dictionary: Return a dictionary contains 3 keys with its value:
 "   +head | String:
 "   +now_new | Number:
 "   +tail | String:
+" ---
 function! s:ComposeBuffer(bufid) abort
     let buffer_name = bufname(a:bufid)
     let buffer_head = fnamemodify(buffer_name, ':p:h')
@@ -149,6 +162,34 @@ function! s:ComposeBuffer(bufid) abort
     let buffer.tail = buffer.not_new ? buffer_tail : g:buffet_new_buffer_name
 
     return buffer
+endfunction
+
+
+" InitAndRecordOcc - Init buffer's state and record occurrences
+" @buf | Dictionary: the buffer
+"
+" => | Dictionary: Return a dic contains 2 dictionaries:
+"   +buffer | Dic: key 'buffer', init 3 following items:
+"       @index
+"       @name
+"       @length
+"   +buffer_name_count  | Dic: key 'buffer_name_count'
+"       @current_count
+" ---
+function! s:InitAndRecordOcc(buf) abort
+    let buffer = {}
+    let buffer_name_count = {}
+
+    let buffer.index = -1
+    let buffer.name = a:buf.tail
+    let buffer.length = len(a:buf.name)
+
+    if buffer.not_new
+        let current_count = get(buffer_name_count, buffer.name, 0)
+        let buffer_name_count[buffer.name] = current_count + 1
+    endif
+
+    return {buffer, buffer_name_count}
 endfunction
 
 
