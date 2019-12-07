@@ -60,18 +60,8 @@ function! buffet#update()
             continue
         endif
 
-        let buffer_name = bufname(buffer_id)
-        let buffer_head = fnamemodify(buffer_name, ':p:h')
-        let buffer_tail = fnamemodify(buffer_name, ':t')
-
-        " Initialize the buffer object
-        let buffer = {}
-        let buffer.head = split(buffer_head, s:path_separator)
-        let buffer.not_new = len(buffer_tail)
-        let buffer.tail = buffer.not_new ? buffer_tail : g:buffet_new_buffer_name
-
         " Update the buffers map
-        let s:buffers[buffer_id] = buffer
+        let s:buffers[buffer_id] = s:ComposeBuffer(buffer_id)
 
         if !is_present
             " Update the buffer IDs list
@@ -139,6 +129,26 @@ function! s:IsTermOrQuickfix(bufid) abort
         return 1
     endif
     return 0
+endfunction
+
+" ComposeBuffer - Compose @head, @not_new, @tail of buffers{} based on buffer_id
+" @bufid | Number: buffer_id
+" => buffer{} | Dictionary: Return a dictionary contains 3 keys with its value:
+"   +head | String:
+"   +now_new | Number:
+"   +tail | String:
+function! s:ComposeBuffer(bufid) abort
+    let buffer_name = bufname(a:bufid)
+    let buffer_head = fnamemodify(buffer_name, ':p:h')
+    let buffer_tail = fnamemodify(buffer_name, ':t')
+
+    " Initialize the buffer object
+    let buffer = {}
+    let buffer.head = split(buffer_head, s:path_separator)
+    let buffer.not_new = len(buffer_tail)
+    let buffer.tail = buffer.not_new ? buffer_tail : g:buffet_new_buffer_name
+
+    return buffer
 endfunction
 
 
