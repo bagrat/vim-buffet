@@ -1,15 +1,16 @@
 " buffers - Display buffers only
-" +Key | Number: buffer_id
-" Values | Dictionary:
+" +Key :Number: buffer_id
+" Values :Dictionary:
 "   Basic Info:
-"     -head | List: buffer's directory abspath, split by `path_separator`
-"     -not_new | Number: it is not new if len(@tail) > 0
-"     -tail | String: buffer's basename
+"     -head    :List: buffer's directory abspath, split by `s:path_separator`
+"     -not_new :Number: it's not new if len(@tail) > 0
+"     -tail    :String: buffer's basename
 "   Buffer State:
 "     -index | Number:
 "     -name | String: file name to display on tabline (@tail)
 "     -length | Number: file name length
 let s:buffers = {}
+
 let s:buffer_ids = []
 
 " when the focus switches to another *unlisted* buffer, it does not appear in
@@ -34,19 +35,20 @@ function! buffet#update()
     let largest_buffer_id = max([bufnr('$'), s:largest_buffer_id])
 
     for buffer_id in range(1, largest_buffer_id)
-        " Check if we already keep track of this buffer
-        let is_present = has_key(s:buffers, buffer_id) ? 1 : 0
+        let is_tracked = has_key(s:buffers, buffer_id) ? 1 : 0
 
-        " Skip if a buffer with this id does not exist
+        " Skip if a buffer with this id does not exist in `buflisted`:
+        " bdelete, floating_window, term, not exists, ...
         if !buflisted(buffer_id)
-            if is_present
+            " Clear this buffer if it is being tracked by `buffers{}`
+            if is_tracked
+                call remove(s:buffers, buffer_id)
+                call remove(s:buffer_ids, index(s:buffer_ids, buffer_id))
+
+                " XXX?
                 if buffer_id == s:last_current_buffer_id
                     let s:last_current_buffer_id = -1
                 endif
-
-                " forget about this buffer
-                call remove(s:buffers, buffer_id)
-                call remove(s:buffer_ids, index(s:buffer_ids, buffer_id))
                 let s:largest_buffer_id = max(s:buffer_ids)
             endif
 
@@ -59,7 +61,7 @@ function! buffet#update()
         "
         " FIXME: You need to learn more about this ? But I don't think we need
         " this
-        if is_present && len(s:buffers) > 1
+        if is_tracked && len(s:buffers) > 1
             continue
         endif
 
@@ -72,7 +74,7 @@ function! buffet#update()
         " Update the buffers map
         let s:buffers[buffer_id] = s:ComposeBuffer(buffer_id)
 
-        if !is_present
+        if !is_tracked
             " Update the buffer IDs list
             call add(s:buffer_ids, buffer_id)
 
@@ -169,7 +171,7 @@ endfunction
 " InitAndRecordOcc - Init buffer's state and record occurrences
 " @buf | Dictionary: the buffer
 "
-" => buffer{} | Dictionary: 
+" => buffer{} | Dictionary:
 "    -index
 "    -name
 "    -length
@@ -204,7 +206,7 @@ function! s:DisambiguateSimilarName() abort
 endfunction
 
 
-
+" =============================================================================
 
 
 function! s:GetVisibleRange(length_limit, buffer_padding)
