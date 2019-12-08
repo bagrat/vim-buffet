@@ -1,13 +1,14 @@
 " buffers - Display buffers only
-" + | Number: buffer_id is the key
-"
-" @head | List: buffer's directory abspath, split by `path_separator`
-" @not_new | Number: it is not new if len(@tail) > 0
-" @tail | String: buffer's basename
-" ---
-" @index | Number:
-" @name | String: file name to display on tabline (@tail)
-" @length | Number: file name length
+" +Key | Number: buffer_id
+" Values | Dictionary:
+"   Basic Info:
+"     -head | List: buffer's directory abspath, split by `path_separator`
+"     -not_new | Number: it is not new if len(@tail) > 0
+"     -tail | String: buffer's basename
+"   Buffer State:
+"     -index | Number:
+"     -name | String: file name to display on tabline (@tail)
+"     -length | Number: file name length
 let s:buffers = {}
 let s:buffer_ids = []
 
@@ -28,6 +29,8 @@ let s:path_separator = fnamemodify(getcwd(),':p')[-1:]
 " ======================
 
 function! buffet#update()
+
+    " Phase I: Init or Update some basic info ===============
     let largest_buffer_id = max([bufnr('$'), s:largest_buffer_id])
 
     for buffer_id in range(1, largest_buffer_id)
@@ -79,16 +82,15 @@ function! buffet#update()
         endif
     endfor
 
-    " --- Phase 2 ---
+    " Phase II: Handle occurrences ====================
     let buffer_name_count = {}
 
     " Set initial buffer name, and record occurrences
     for buffer in values(s:buffers)
-        let composed_buf = s:InitAndRecordOcc(buffer)
-
-        let buffer            = extend(buffer, composed_buf['buffer'], 'force')
+        let buffer            = extend(buffer, s:InitOccState(buffer), 'force')
         let buffer_name_count = extend(buffer_name_count,
-            \   composed_buf['buffer_name_count'], 'force')
+            \   s:RecordOcc(buffer.not_new, buffer_name_count, buffer.name),
+            \   'force')
     endfor
 
     " Disambiguate buffer names with multiple occurrences
@@ -167,28 +169,38 @@ endfunction
 " InitAndRecordOcc - Init buffer's state and record occurrences
 " @buf | Dictionary: the buffer
 "
-" => | Dictionary: Return a dic contains 2 dictionaries:
-"   +buffer | Dic: key 'buffer', init 3 following items:
-"       -index
-"       -name
-"       -length
-"   +buffer_name_count  | Dic: key 'buffer_name_count'
-"       + | String: @buffer.name as key
+" => buffer{} | Dictionary: 
+"    -index
+"    -name
+"    -length
 " ---
-function! s:InitAndRecordOcc(buf) abort
+function! s:InitOccState(buf) abort
     let buffer = {}
-    let buffer_name_count = {}
-
     let buffer.index = -1
     let buffer.name = a:buf.tail
     let buffer.length = len(buffer.name)
 
-    if a:buf.not_new
-        let current_count = get(buffer_name_count, buffer.name, 0)
-        let buffer_name_count[buffer.name] = current_count + 1
-    endif
+    return buffer
+endfunction
 
-    return { 'buffer': buffer, 'buffer_name_count': buffer_name_count}
+
+" RecordOcc - Record occurrences
+" @buf | Dictionary: the buffer
+"
+" => | Dictionary: return the following dic OR an empty dic {} if a:now_new == 0
+"   +@buf.name | String
+"   -current_count | Number
+" ---
+function! s:RecordOcc(not_new, buffer_name_count, name) abort
+    if a:not_new
+        let l:current_count = get(a:buffer_name_count, a:name, 0)
+        return { a:name: l:current_count+1 }
+    endif
+    return {}
+endfunction
+
+
+function! s:DisambiguateSimilarName() abort
 endfunction
 
 
