@@ -3,7 +3,7 @@
 "
 " @head | List: buffer's directory abspath, split by `path_separator`
 " @not_new | Number: it is not new if len(@tail) > 0
-" @tail | String: buffer's name (file name)
+" @tail | String: buffer's basename
 " ---
 " @index | Number:
 " @name | String: file name to display on tabline (@tail)
@@ -85,11 +85,10 @@ function! buffet#update()
     " Set initial buffer name, and record occurrences
     for buffer in values(s:buffers)
         let composed_buf = s:InitAndRecordOcc(buffer)
-        let buffer = extend(buffer, composed_buf['buffer'], 'force')
 
-        let buffer_name_count = extend( buffer_name_count,
-            \   composed_buf['buffer_name_count']
-            \   'force')
+        let buffer            = extend(buffer, composed_buf['buffer'], 'force')
+        let buffer_name_count = extend(buffer_name_count,
+            \   composed_buf['buffer_name_count'], 'force')
     endfor
 
     " Disambiguate buffer names with multiple occurrences
@@ -131,24 +130,24 @@ endfunction
 " IsTermOrQuickfix - Return TRUE (1) if it's a Terminal or Quickfix buffer
 " @bufid | Number: buffer_id is used to check
 "
-" => | Boolean (Number?):
+" => | Boolean:
 " ---
 function! s:IsTermOrQuickfix(bufid) abort
     let buffer_type = getbufvar(a:bufid, "&buftype", "")
     if index(["terminal", "quickfix"], buffer_type) >= 0
-        return 1
+        return v:true
     endif
-    return 0
+    return v:false
 endfunction
 
 
 " ComposeBuffer - Compose @head, @not_new, @tail of buffers{} based on buffer_id
 " @bufid | Number: buffer_id
 "
-" => buffer{} | Dictionary: Return a dictionary contains 3 keys with its value:
-"   +head | String:
-"   +now_new | Number:
-"   +tail | String:
+" => buffer{} | Dictionary: Return a dictionary contains 3 items:
+"   -head | String:
+"   -now_new | Number:
+"   -tail | String:
 " ---
 function! s:ComposeBuffer(bufid) abort
     let buffer_name = bufname(a:bufid)
@@ -170,11 +169,11 @@ endfunction
 "
 " => | Dictionary: Return a dic contains 2 dictionaries:
 "   +buffer | Dic: key 'buffer', init 3 following items:
-"       @index
-"       @name
-"       @length
+"       -index
+"       -name
+"       -length
 "   +buffer_name_count  | Dic: key 'buffer_name_count'
-"       @current_count
+"       + | String: @buffer.name as key
 " ---
 function! s:InitAndRecordOcc(buf) abort
     let buffer = {}
@@ -182,14 +181,14 @@ function! s:InitAndRecordOcc(buf) abort
 
     let buffer.index = -1
     let buffer.name = a:buf.tail
-    let buffer.length = len(a:buf.name)
+    let buffer.length = len(buffer.name)
 
-    if buffer.not_new
+    if a:buf.not_new
         let current_count = get(buffer_name_count, buffer.name, 0)
         let buffer_name_count[buffer.name] = current_count + 1
     endif
 
-    return {buffer, buffer_name_count}
+    return { 'buffer': buffer, 'buffer_name_count': buffer_name_count}
 endfunction
 
 
