@@ -1,5 +1,5 @@
 " buffers - Track listed buffers
-" +{buffer_id} :Dictionary: buffer_id is key, contain following dictionary:
+" +{buffer_id} :Dictionary: buffer_id is key, contain following items:
 " Basic Info:
 "   -head    :List: buffer's directory abspath, split by `s:path_separator`
 "   -not_new :Number: it's not new if len(@tail) > 0; not [No Name] file ?
