@@ -1,14 +1,14 @@
-" buffers - Display buffers only
-" +Key :Number: buffer_id
-" Values :Dictionary:
-"   Basic Info:
-"     -head    :List: buffer's directory abspath, split by `s:path_separator`
-"     -not_new :Number: it's not new if len(@tail) > 0
-"     -tail    :String: buffer's basename
-"   Buffer State:
-"     -index | Number:
-"     -name | String: file name to display on tabline (@tail)
-"     -length | Number: file name length
+" buffers - Track listed buffers
+" +{buffer_id} :Dictionary: buffer_id is key, contain following dictionary:
+" Basic Info:
+"   -head    :List: buffer's directory abspath, split by `s:path_separator`
+"   -not_new :Number: it's not new if len(@tail) > 0; not [No Name] file ?
+"   -tail    :String: buffer's filename
+" State Info:
+"   -index  :Number: (-1) index for taking @head's basename, combine with
+"     @name to distinguish identical filename, decrease if still identical
+"   -name   :String: filename to display on tabline
+"   -length :Number: filename length
 let s:buffers = {}
 
 let s:buffer_ids = []
@@ -31,7 +31,8 @@ let s:path_separator = fnamemodify(getcwd(),':p')[-1:]
 
 function! buffet#update()
 
-    " Phase I: Init or Update some basic info ===============
+    " Phase I: Init or Update some basic info
+    " =======================================
     let largest_buffer_id = max([bufnr('$'), s:largest_buffer_id])
 
     for buffer_id in range(1, largest_buffer_id)
@@ -45,23 +46,18 @@ function! buffet#update()
                 call remove(s:buffers, buffer_id)
                 call remove(s:buffer_ids, index(s:buffer_ids, buffer_id))
 
-                " XXX?
-                if buffer_id == s:last_current_buffer_id
+                if buffer_id == s:last_current_buffer_id    " XXX?
                     let s:last_current_buffer_id = -1
                 endif
                 let s:largest_buffer_id = max(s:buffer_ids)
             endif
-
             continue
         endif
 
         " If this buffer is already tracked and listed, we're good.
         " In case if it is the only buffer, still update, because an empty new
         " buffer id is being replaced by a buffer for an existing file.
-        "
-        " FIXME: You need to learn more about this ? But I don't think we need
-        " this
-        if is_tracked && len(s:buffers) > 1
+        if is_tracked && len(s:buffers) > 1     " XXX?
             continue
         endif
 
@@ -72,27 +68,27 @@ function! buffet#update()
         endif
 
         " Update the buffers map
-        let s:buffers[buffer_id] = s:ComposeBuffer(buffer_id)
+        let s:buffers[buffer_id] = s:ComposeBufferInfo(buffer_id)
 
         if !is_tracked
             " Update the buffer IDs list
             call add(s:buffer_ids, buffer_id)
-
             " FIXME: Wtf is this ? Why though ?
             let s:largest_buffer_id = max([s:largest_buffer_id, buffer_id])
-
         endif
     endfor
 
-    " Phase II: Handle occurrences ====================
+    " Phase II: Handling identical filenames
+    " ======================================
+    " buffer_name_count - Memoize identical filenames
+    " +{buffer.name} :Number: count
     let buffer_name_count = {}
 
     " Set initial buffer name, and record occurrences
     for buffer in values(s:buffers)
-        let buffer            = extend(buffer, s:InitOccState(buffer), 'force')
+        let buffer            = extend(buffer, s:InitOccState(buffer))
         let buffer_name_count = extend(buffer_name_count,
-            \   s:RecordOcc(buffer.not_new, buffer_name_count, buffer.name),
-            \   'force')
+            \   s:RecordOcc(buffer_name_count, buffer))
     endfor
 
     " Disambiguate buffer names with multiple occurrences
@@ -100,30 +96,31 @@ function! buffet#update()
         let ambiguous = buffer_name_count
         let buffer_name_count = {}
 
+        " Update buffer name; and record occurrences after changed
         for buffer in values(s:buffers)
             if has_key(ambiguous, buffer.name)
-                let buffer_path = buffer.head[buffer.index:]
-                call add(buffer_path, buffer.tail)
-
-                let buffer.index -= 1
-                let buffer.name = join(buffer_path, s:path_separator)
-                let buffer.length = len(buffer.name)
+                let buffer = extend(buffer, s:UpdateOccState(buffer))
             endif
 
-            if buffer.not_new
-                let current_count = get(buffer_name_count, buffer.name, 0)
-                let buffer_name_count[buffer.name] = current_count + 1
-            endif
+            let buffer_name_count = extend(buffer_name_count,
+                \   s:RecordOcc(buffer_name_count, buffer))
         endfor
     endwhile
 
+    " Phase III: Update s:last_current_buffer_id
+    " ==========================================
     let current_buffer_id = bufnr('%')
+
     if has_key(s:buffers, current_buffer_id)
         let s:last_current_buffer_id = current_buffer_id
+    " FIXME: Delete this !!!
     elseif s:last_current_buffer_id == -1 && len(s:buffer_ids) > 0
         let s:last_current_buffer_id = s:buffer_ids[0]
     endif
 
+    " Phase IV: Misc
+    " ===============
+    " FIXME: Break this !!!
     " Hide tabline if only one buffer and tab open
     if !g:buffet_always_show_tabline && len(s:buffer_ids) == 1 && tabpagenr("$") == 1
         set showtabline=0
@@ -134,7 +131,7 @@ endfunction
 " IsTermOrQuickfix - Return TRUE (1) if it's a Terminal or Quickfix buffer
 " @bufid | Number: buffer_id is used to check
 "
-" => | Boolean:
+" => :Boolean:
 " ---
 function! s:IsTermOrQuickfix(bufid) abort
     let buffer_type = getbufvar(a:bufid, "&buftype", "")
@@ -145,7 +142,7 @@ function! s:IsTermOrQuickfix(bufid) abort
 endfunction
 
 
-" ComposeBuffer - Compose @head, @not_new, @tail of buffers{} based on buffer_id
+" ComposeBufferInfo - Compose @head, @not_new, @tail of buffers{} based on buffer_id
 " @bufid | Number: buffer_id
 "
 " => buffer{} | Dictionary: Return a dictionary contains 3 items:
@@ -153,7 +150,7 @@ endfunction
 "   -now_new | Number:
 "   -tail | String:
 " ---
-function! s:ComposeBuffer(bufid) abort
+function! s:ComposeBufferInfo(bufid) abort
     let buffer_name = bufname(a:bufid)
     let buffer_head = fnamemodify(buffer_name, ':p:h')
     let buffer_tail = fnamemodify(buffer_name, ':t')
@@ -175,7 +172,6 @@ endfunction
 "    -index
 "    -name
 "    -length
-" ---
 function! s:InitOccState(buf) abort
     let buffer = {}
     let buffer.index = -1
@@ -187,26 +183,121 @@ endfunction
 
 
 " RecordOcc - Record occurrences
-" @buf | Dictionary: the buffer
+" @buffer_name_count :Dictionary:
+" @buf :Dictionary: the buffer
 "
 " => | Dictionary: return the following dic OR an empty dic {} if a:now_new == 0
-"   +@buf.name | String
-"   -current_count | Number
+"   +{buf.name} :Number: current_count
 " ---
-function! s:RecordOcc(not_new, buffer_name_count, name) abort
-    if a:not_new
-        let l:current_count = get(a:buffer_name_count, a:name, 0)
-        return { a:name: l:current_count+1 }
+function! s:RecordOcc(buffer_name_count, buf) abort
+    if a:buf.not_new
+        let l:current_count = get(a:buffer_name_count, a:buf.name, 0)
+        return { a:buf.name: l:current_count+1 }
     endif
     return {}
 endfunction
 
 
-function! s:DisambiguateSimilarName() abort
+" UpdateOccState - Update buffers's state
+" @buf :Dictionary: buffer item from buffers{}
+"
+" => buffer{} :Dictionary:
+"   -index  :Number: decrease the index
+"   -name   :String:
+"   -length :Number:
+function! s:UpdateOccState(buf) abort
+    let buffer_path = a:buf.head[a:buf.index:]
+    call add(buffer_path, a:buf.tail)
+
+    let buffer = {}
+    let buffer.index = a:buf.index - 1
+    let buffer.name = join(buffer_path, s:path_separator)
+    let buffer.length = len(buffer.name)
+
+    return buffer
 endfunction
 
 
+
+
 " =============================================================================
+
+
+
+function! s:Render()
+    let sep_len = s:Len(g:buffet_separator)
+
+    let tabs_count = tabpagenr("$")
+    let tabs_len = (1 + s:Len(g:buffet_tab_icon) + 1 + sep_len) * tabs_count
+
+    let left_trunc_len = 1 + s:Len(g:buffet_left_trunc_icon) + 1 + 2 + 1 + sep_len
+    let right_trunc_len =  1 + 2 + 1 + s:Len(g:buffet_right_trunc_icon) + 1 + sep_len
+    let trunc_len = left_trunc_len + right_trunc_len
+
+    let capacity = &columns - tabs_len - trunc_len - 5
+    let buffer_padding = 1 + (g:buffet_use_devicons ? 1+1 : 0) + 1 + sep_len
+
+    let elements = s:GetAllElements(capacity, buffer_padding)
+
+    let render = ""
+    for i in range(0, len(elements) - 2)
+        let left = elements[i]
+        let elem = left
+        let right = elements[i + 1]
+
+        if elem.type == "Tab"
+            let render = render . "%" . elem.value . "T"
+        elseif s:IsBufferElement(elem) && has("nvim")
+            let render = render . "%" . elem.buffer_id . "@SwitchToBuffer@"
+        endif
+
+        let highlight = s:GetTypeHighlight(elem.type)
+        let render = render . highlight
+
+        if g:buffet_show_index && s:IsBufferElement(elem)
+            let render = render . " " . elem.index
+        endif
+
+        let icon = ""
+        if g:buffet_use_devicons && s:IsBufferElement(elem)
+            let icon = " " . WebDevIconsGetFileTypeSymbol(elem.value)
+        elseif elem.type == "Tab"
+            let icon = " " . g:buffet_tab_icon
+        endif
+
+        let render = render . icon
+
+        if elem.type != "Tab"
+            let render = render . " " . elem.value
+        endif
+
+        if s:IsBufferElement(elem)
+            if elem.is_modified && g:buffet_modified_icon != ""
+                let render = render . g:buffet_modified_icon
+            endif
+        endif
+
+        let render = render . " "
+
+        let separator =  g:buffet_has_separator[left.type][right.type]
+        let separator_hi = s:GetTypeHighlight(left.type . right.type)
+        let render = render . separator_hi . separator
+
+        if elem.type == "Tab" && has("nvim")
+            let render = render . "%T"
+        elseif s:IsBufferElement(elem) && has("nvim")
+            let render = render . "%T"
+        endif
+    endfor
+
+    if !has("nvim")
+        let render = render . "%T"
+    endif
+
+    let render = render . s:GetTypeHighlight("Buffer")
+
+    return render
+endfunction
 
 
 function! s:GetVisibleRange(length_limit, buffer_padding)
@@ -216,24 +307,26 @@ function! s:GetVisibleRange(length_limit, buffer_padding)
         return [-1, -1]
     endif
 
-    let current_buffer_id_i = index(s:buffer_ids, current_buffer_id)
+    let current_buffer_id_idx = index(s:buffer_ids, current_buffer_id)
 
     let current_buffer = s:buffers[current_buffer_id]
-    let capacity = a:length_limit - current_buffer.length - a:buffer_padding
-    let left_i = current_buffer_id_i
-    let right_i = current_buffer_id_i
 
-    for left_i in range(current_buffer_id_i - 1, 0, -1)
-        let buffer = s:buffers[s:buffer_ids[left_i]]
+    let capacity = a:length_limit - current_buffer.length - a:buffer_padding
+
+    let left_idx = current_buffer_id_idx
+    let right_i = current_buffer_id_idx
+
+    for left_idx in range(current_buffer_id_idx - 1, 0, -1)
+        let buffer = s:buffers[s:buffer_ids[left_idx]]
         if (buffer.length + a:buffer_padding) <= capacity
             let capacity = capacity - buffer.length - a:buffer_padding
         else
-            let left_i = left_i + 1
+            let left_idx = left_idx + 1
             break
         endif
     endfor
 
-    for right_i in range(current_buffer_id_i + 1, len(s:buffers) - 1)
+    for right_i in range(current_buffer_id_idx + 1, len(s:buffers) - 1)
         let buffer = s:buffers[s:buffer_ids[right_i]]
         if (buffer.length + a:buffer_padding) <= capacity
             let capacity = capacity - buffer.length - a:buffer_padding
@@ -243,7 +336,7 @@ function! s:GetVisibleRange(length_limit, buffer_padding)
         endif
     endfor
 
-    return [left_i, right_i]
+    return [left_idx, right_i]
 endfunction
 
 function! s:GetBufferElements(capacity, buffer_padding)
@@ -343,80 +436,6 @@ function! s:GetTypeHighlight(type)
     return "%#" . g:buffet_prefix . a:type . "#"
 endfunction
 
-function! s:Render()
-    let sep_len = s:Len(g:buffet_separator)
-
-    let tabs_count = tabpagenr("$")
-    let tabs_len = (1 + s:Len(g:buffet_tab_icon) + 1 + sep_len) * tabs_count
-
-    let left_trunc_len = 1 + s:Len(g:buffet_left_trunc_icon) + 1 + 2 + 1 + sep_len
-    let right_trunc_len =  1 + 2 + 1 + s:Len(g:buffet_right_trunc_icon) + 1 + sep_len
-    let trunc_len = left_trunc_len + right_trunc_len
-
-    let capacity = &columns - tabs_len - trunc_len - 5
-    let buffer_padding = 1 + (g:buffet_use_devicons ? 1+1 : 0) + 1 + sep_len
-
-    let elements = s:GetAllElements(capacity, buffer_padding)
-
-    let render = ""
-    for i in range(0, len(elements) - 2)
-        let left = elements[i]
-        let elem = left
-        let right = elements[i + 1]
-
-        if elem.type == "Tab"
-            let render = render . "%" . elem.value . "T"
-        elseif s:IsBufferElement(elem) && has("nvim")
-            let render = render . "%" . elem.buffer_id . "@SwitchToBuffer@"
-        endif
-
-        let highlight = s:GetTypeHighlight(elem.type)
-        let render = render . highlight
-
-        if g:buffet_show_index && s:IsBufferElement(elem)
-            let render = render . " " . elem.index
-        endif
-
-        let icon = ""
-        if g:buffet_use_devicons && s:IsBufferElement(elem)
-            let icon = " " . WebDevIconsGetFileTypeSymbol(elem.value)
-        elseif elem.type == "Tab"
-            let icon = " " . g:buffet_tab_icon
-        endif
-
-        let render = render . icon
-
-        if elem.type != "Tab"
-            let render = render . " " . elem.value
-        endif
-
-        if s:IsBufferElement(elem)
-            if elem.is_modified && g:buffet_modified_icon != ""
-                let render = render . g:buffet_modified_icon
-            endif
-        endif
-
-        let render = render . " "
-
-        let separator =  g:buffet_has_separator[left.type][right.type]
-        let separator_hi = s:GetTypeHighlight(left.type . right.type)
-        let render = render . separator_hi . separator
-
-        if elem.type == "Tab" && has("nvim")
-            let render = render . "%T"
-        elseif s:IsBufferElement(elem) && has("nvim")
-            let render = render . "%T"
-        endif
-    endfor
-
-    if !has("nvim")
-        let render = render . "%T"
-    endif
-
-    let render = render . s:GetTypeHighlight("Buffer")
-
-    return render
-endfunction
 
 function! buffet#render()
     call buffet#update()
