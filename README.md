@@ -192,6 +192,14 @@ Vimrc file, using `let <optiona-name> = <option-value>`:
   let g:buffet_right_trunc_icon = ">"
   ```
 
+* `g:buffet_hidden_buffers` - the types of buffers to hide from the tabline
+
+  Default:
+  ```
+  let g:buffet_hidden_buffers = ["terminal", "quickfix"]
+  ```
+  Note: this has the side effect of making all matching buffers unlisted
+
 ### Colors
 
 Of course, you can customize the colors of your tabline, to make it awesome and

@@ -61,6 +61,10 @@ if !exists("g:buffet_tab_icon")
     let g:buffet_tab_icon = "#"
 endif
 
+if !exists("g:buffet_hidden_buffers")
+    let g:buffet_hidden_buffers = ["terminal", "quickfix"]
+endif
+
 let g:buffet_prefix = "Buffet"
 let g:buffet_has_separator = {
             \     "Tab": {
