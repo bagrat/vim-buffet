@@ -11,7 +11,7 @@ augroup buffet_show_tabline
     autocmd VimEnter,BufAdd,TabEnter * set showtabline=2
 augroup END
 
-if has("gui")
+if has("gui") || has("termguicolors")
     if !get(g:, "buffet_use_gui_tablne", 0)
         set guioptions-=e
     endif
@@ -109,7 +109,7 @@ endfor
 function! s:GetHiAttr(name, attr)
     let vim_mode = "cterm"
     let attr_suffix = ""
-    if has("gui")
+    if has("gui") || has('termguicolors')
         let vim_mode = "gui"
         let attr_suffix = "#"
     endif
@@ -121,7 +121,7 @@ endfunction
 
 function! s:SetHi(name, fg, bg)
     let vim_mode = "cterm"
-    if has("gui")
+    if has("gui") || has("termguicolors")
         let vim_mode = "gui"
     endif
 
@@ -177,7 +177,7 @@ function! s:SetColors()
     for left in keys(g:buffet_has_separator)
         for right in keys(g:buffet_has_separator[left])
             let vim_mode = "cterm"
-            if has("gui")
+            if has("gui") || has("termguicolors")
                 let vim_mode = "gui"
             endif
 
