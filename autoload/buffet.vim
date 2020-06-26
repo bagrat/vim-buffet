@@ -272,6 +272,7 @@ function! s:Render()
     let buffer_padding = 1 + (g:buffet_use_devicons ? 1+1 : 0) + 1 + sep_len
 
     let elements = s:GetAllElements(capacity, buffer_padding)
+    let index_number= ['➊','➋','➌','➍','➎','➏','➐','➑','➒','➓','⓫','⓬','⓭','⓮','⓯','⓰','⓱','⓲','⓳','⓴','㉑', '㉒', '㉓' ,'㉔', '㉕','㉖','㉗','㉘','㉙','㉚','㉛','㉜','㉝','㉞','㉟','㊱','㊲','㊳','㊴','㊵','㊶','㊷','㊸','㊹','㊺','㊻','㊼','㊽','㊾','㊿']
 
     let render = ""
     for i in range(0, len(elements) - 2)
@@ -289,7 +290,11 @@ function! s:Render()
         let render = render . highlight
 
         if g:buffet_show_index && s:IsBufferElement(elem)
-            let render = render . " " . elem.index
+            if g:buffet_bubble_index
+                let render = render . " " . index_number[elem.index-1]
+            else
+                let render = render . " " . elem.index
+            endif
         endif
 
         let icon = ""

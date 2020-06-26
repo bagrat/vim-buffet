@@ -133,6 +133,14 @@ Vimrc file, using `let <optiona-name> = <option-value>`:
   let g:buffet_show_index = 0
   ```
 
+* `g:buffet_bubble_index` - If set to `1`, shows bubbled numbers index before each buffer name
+* (➊ ➋ ➌ ➍ ➎ instead of 1 2 3 4 5). Requires `g:buffet_show_index` to be set to `1`.
+
+  Default:
+  ```viml
+  let g:buffet_bubble_index = 0
+  ```
+
 * `g:buffet_max_plug` - the maximum number of `<Plug>BuffetSwitch` provided. Mapping
   will be disabled if the option is set to `0`.
 
