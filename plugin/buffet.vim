@@ -109,7 +109,7 @@ endfor
 function! s:GetHiAttr(name, attr)
     let vim_mode = "cterm"
     let attr_suffix = ""
-    if has("gui") || has('termguicolors')
+    if has("gui") || has("termguicolors")
         let vim_mode = "gui"
         let attr_suffix = "#"
     endif
