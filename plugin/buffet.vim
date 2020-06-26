@@ -29,6 +29,8 @@ endif
 
 let g:buffet_show_index = get(g:, "buffet_show_index", 0)
 
+let g:buffet_bubble_index = get(g:, "buffet_bubble_index", 0)
+
 let g:buffet_max_plug = get(g:, "buffet_max_plug", 10)
 
 if get(g:, "buffet_use_devicons", 1)
