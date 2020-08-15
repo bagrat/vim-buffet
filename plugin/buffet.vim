@@ -37,11 +37,6 @@ let g:buffet_right_trunc_icon = get(g:, 'buffet_right_trunc_icon', '>')
 let g:buffet_new_buffer_name = get(g:, 'buffet_new_buffer_name', '*')
 let g:buffet_tab_icon = get(g:, 'buffet_tab_icon', '#')
 
-augroup buffet_show_tabline
-  autocmd!
-  autocmd VimEnter,BufAdd,TabEnter * set showtabline=2
-augroup END
-
 if has("gui") || has("termguicolors")
   if !get(g:, "buffet_use_gui_tablne", 0)
     set guioptions-=e
@@ -86,11 +81,6 @@ for s:type in g:buffet_buffer_types
   endfor
 endfor
 
-augroup buffet_set_colors
-  autocmd!
-  autocmd ColorScheme * call buffet#colors#init_color_highlights()
-augroup end
-
 " Set solors also at the startup
 call buffet#colors#init_color_highlights()
 
@@ -123,5 +113,10 @@ endfor
 
 command! -bang -complete=buffer -nargs=? Bw call buffet#bwipe(<q-bang>, <q-args>)
 command! -bang -complete=buffer -nargs=? Bonly call buffet#bonly(<q-bang>, <q-args>)
+
+augroup buffet
+  autocmd VimEnter,BufAdd,TabEnter * set showtabline=2
+  autocmd ColorScheme * call buffet#colors#init_color_highlights()
+augroup end
 
 set tabline=%!buffet#render()
