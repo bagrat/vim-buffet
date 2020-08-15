@@ -1,3 +1,9 @@
+" vim-buffet  - IDE-like tabs 
+" Author:       Bagrat Aznauryan <contact@bagrat.io>
+" Url:          https://github.com/bagrat/vim-buffet
+" License:      MIT
+" ===========================================================================
+
 if exists("g:buffet_loaded")
   finish
 endif
@@ -5,16 +11,14 @@ endif
 let g:buffet_loaded = 1
 
 let g:buffet_always_show_tabline = get(g:, "buffet_always_show_tabline", 1)
+let g:buffet_show_index = get(g:, "buffet_show_index", 0)
+let g:buffet_max_plug = get(g:, "buffet_max_plug", 10)
+let g:buffet_hidden_buffers = get(g:, 'buffet_hidden_buffers', ['terminal', 'quickfix'])
 
-augroup buffet_show_tabline
-  autocmd!
-  autocmd VimEnter,BufAdd,TabEnter * set showtabline=2
-augroup END
-
-if has("gui") || has("termguicolors")
-  if !get(g:, "buffet_use_gui_tablne", 0)
-    set guioptions-=e
-  endif
+if get(g:, "buffet_use_devicons", 1)
+  let g:buffet_use_devicons = exists("*WebDevIconsGetFileTypeSymbol") ? 1 : 0
+else
+  let g:buffet_use_devicons = 0
 endif
 
 if get(g:, "buffet_powerline_separators", 0)
@@ -27,42 +31,21 @@ else
   let g:buffet_separator = get(g:, "buffet_separator", "|")
 endif
 
-let g:buffet_show_index = get(g:, "buffet_show_index", 0)
+let g:buffet_modified_icon = get(g:, 'buffet_modified_icon', '+')
+let g:buffet_left_trunc_icon = get(g:, 'buffet_left_trunc_icon', '<')
+let g:buffet_right_trunc_icon = get(g:, 'buffet_right_trunc_icon', '>')
+let g:buffet_new_buffer_name = get(g:, 'buffet_new_buffer_name', '*')
+let g:buffet_tab_icon = get(g:, 'buffet_tab_icon', '#')
 
-let g:buffet_max_plug = get(g:, "buffet_max_plug", 10)
+augroup buffet_show_tabline
+  autocmd!
+  autocmd VimEnter,BufAdd,TabEnter * set showtabline=2
+augroup END
 
-if get(g:, "buffet_use_devicons", 1)
-  if !exists("*WebDevIconsGetFileTypeSymbol")
-    let g:buffet_use_devicons = 0
-  else
-    let g:buffet_use_devicons = 1
+if has("gui") || has("termguicolors")
+  if !get(g:, "buffet_use_gui_tablne", 0)
+    set guioptions-=e
   endif
-else
-  let g:buffet_use_devicons = 0
-endif
-
-if !exists("g:buffet_modified_icon")
-  let g:buffet_modified_icon = "+"
-endif
-
-if !exists("g:buffet_left_trunc_icon")
-  let g:buffet_left_trunc_icon = "<"
-endif
-
-if !exists("g:buffet_right_trunc_icon")
-  let g:buffet_right_trunc_icon = ">"
-endif
-
-if !exists("g:buffet_new_buffer_name")
-  let g:buffet_new_buffer_name = "*"
-endif
-
-if !exists("g:buffet_tab_icon")
-  let g:buffet_tab_icon = "#"
-endif
-
-if !exists("g:buffet_hidden_buffers")
-  let g:buffet_hidden_buffers = ["terminal", "quickfix"]
 endif
 
 let g:buffet_prefix = "Buffet"
