@@ -20,14 +20,11 @@ function! buffet#update()
 
   for buffer_id in range(1, largest_buffer_id)
     " Check if we already keep track of this buffer
-    let is_present = 0
-    if has_key(s:buffers, buffer_id)
-      let is_present = 1
-    endif
+    let is_tracked = has_key(s:buffers, buffer_id) ? 1 : 0
 
     " Skip if a buffer with this id does not exist
     if !buflisted(buffer_id)
-      if is_present
+      if is_tracked
         if buffer_id == s:last_current_buffer_id
           let s:last_current_buffer_id = -1
         endif
@@ -44,7 +41,7 @@ function! buffet#update()
     " If this buffer is already tracked and listed, we're good.
     " In case if it is the only buffer, still update, because an empty new
     " buffer id is being replaced by a buffer for an existing file.
-    if is_present && len(s:buffers) > 1
+    if is_tracked && len(s:buffers) > 1
       continue
     endif
 
@@ -68,7 +65,7 @@ function! buffet#update()
     " Update the buffers map
     let s:buffers[buffer_id] = buffer
 
-    if !is_present
+    if !is_tracked
       " Update the buffer IDs list
       call add(s:buffer_ids, buffer_id)
       let s:largest_buffer_id = max([s:largest_buffer_id, buffer_id])
