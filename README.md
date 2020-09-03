@@ -6,21 +6,20 @@
   <br>
 </h1>
 
-<div align="center">
-  <b>Brings you the IDE-like tabs into Vim, for easy navigation, and a nice,
-customizable look</b>
-</div>
-
-<div align="center"> &nbsp; </div>
-
-<!--
 <p align="center">
-  <a href=""><img src="https://img.shields.io/badge/chat-gitter-orange"></a>
+  <b>Brings you the IDE-like tabs into Vim, for easy navigation, and a nice, customizable look</b>
+</p>
+
+<p align="center">
+  <a href="https://gitter.im/vim-buffet/vim-buffet?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge" target="_blank">
+    <img src="https://img.shields.io/badge/%F0%9F%92%AC-gitter-%23e74f4e">
+  </a>
+  <!--
   <a href="https://saythanks.io/to/amitmerchant1990">
       <img src="https://img.shields.io/badge/SayThanks.io-%E2%98%BC-1EAEDB.svg">
   </a>
+  -->
 </p>
--->
 
 <p align="center">
   <a href="#installation">Installation</a> •
