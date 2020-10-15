@@ -233,12 +233,16 @@ map <C-t> :tab split<CR>
 
 The reason is that you probably use some statusline plugin (e.g. lightline,
 airline) that also has tabline support, which overrides vim-buffet. All you need
-to do is disable the tabline of the statusline plugin. For Lightline, it should
-be something like this:
+to do is disable the tabline of the statusline plugin. 
+
+#### For [lightline.vim](https://github.com/itchyny/lightline.vim)
+It should be something like this:
 
 ```vim
 let g:lightline.enable.tabline = 0
 ```
+
+If that's not working, checkout this [issue](https://github.com/bagrat/vim-buffet/issues/20) especially this [comment](https://github.com/bagrat/vim-buffet/issues/20#issuecomment-706075930).
 </p>
 </details>
 
