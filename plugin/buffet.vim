@@ -243,6 +243,9 @@ for s:n in range(0, g:buffet_max_plug)
     execute printf("noremap <silent> <Plug>BuffetSwitch(%d) :call buffet#bswitch(%d)<cr>", s:n, s:n)
 endfor
 
+noremap <silent> <Plug>BuffetNext :call buffet#bnext()<cr>
+noremap <silent> <Plug>BuffetPrev :call buffet#bprev()<cr>
+
 command! -bang -complete=buffer -nargs=? Bw call buffet#bwipe(<q-bang>, <q-args>)
 command! -bang -complete=buffer -nargs=? Bonly call buffet#bonly(<q-bang>, <q-args>)
 

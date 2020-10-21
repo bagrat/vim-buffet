@@ -360,6 +360,16 @@ function! buffet#bswitch(index)
     execute 'silent buffer ' . buffer_id
 endfunction
 
+function! buffet#bnext()
+    let next_buffer_id = (s:last_current_buffer_id+1)%len(s:buffer_ids)
+    call buffet#bswitch(next_buffer_id)
+endfunction
+
+function! buffet#bprev()
+    let next_buffer_id = (s:last_current_buffer_id-1)
+    call buffet#bswitch(next_buffer_id)
+endfunction
+
 " inspired and based on https://vim.fandom.com/wiki/Deleting_a_buffer_without_closing_the_window
 function! buffet#bwipe(bang, buffer)
     let btarget = s:GetBuffer(a:buffer)
