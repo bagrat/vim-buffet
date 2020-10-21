@@ -361,13 +361,14 @@ function! buffet#bswitch(index)
 endfunction
 
 function! buffet#bnext()
-    let next_buffer_id = (s:last_current_buffer_id+1)%len(s:buffer_ids)
-    call buffet#bswitch(next_buffer_id)
+    let current_buffer_id_i = index(s:buffer_ids, s:last_current_buffer_id)
+    let next_buffer_id_i = (current_buffer_id_i+2)%len(s:buffer_ids)
+    call buffet#bswitch(next_buffer_id_i)
 endfunction
 
 function! buffet#bprev()
-    let next_buffer_id = (s:last_current_buffer_id-1)
-    call buffet#bswitch(next_buffer_id)
+    let current_buffer_id_i = index(s:buffer_ids, s:last_current_buffer_id)
+    call buffet#bswitch(current_buffer_id_i)
 endfunction
 
 " inspired and based on https://vim.fandom.com/wiki/Deleting_a_buffer_without_closing_the_window
