@@ -63,7 +63,7 @@ function! buffet#update()
         let buffer = {}
         let buffer.head = split(buffer_head, s:path_separator)
         let buffer.not_new = len(buffer_tail)
-        let buffer.tail = buffer.not_new ? buffer_tail : g:buffet_new_buffer_name 
+        let buffer.tail = buffer.not_new ? buffer_tail : g:buffet_new_buffer_name
 
         " Update the buffers map
         let s:buffers[buffer_id] = buffer
@@ -119,7 +119,7 @@ function! buffet#update()
     endif
 
     " Hide tabline if only one buffer and tab open
-    if !g:buffet_always_show_tabline && len(s:buffer_ids) == 1 && tabpagenr("$") == 1
+    if !g:buffet_always_show_tabline && len(s:buffer_ids) <= 1 && tabpagenr("$") == 1
         set showtabline=0
     endif
 endfunction
