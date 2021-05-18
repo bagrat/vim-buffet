@@ -77,6 +77,8 @@ let g:buffet_has_separator = {
             \         "CurrentBuffer": g:buffet_separator,
             \         "ActiveBuffer": g:buffet_separator,
             \         "ModBuffer": g:buffet_separator,
+            \         "ModActiveBuffer": g:buffet_separator,
+            \         "ModCurrentBuffer": g:buffet_separator,
             \     },
             \     "RightTrunc": {
             \         "Tab": g:buffet_separator,
