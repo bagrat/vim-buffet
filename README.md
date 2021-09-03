@@ -99,7 +99,7 @@ Vim, you will see the new tabline!
 Apart from listing the buffers in the tabline, `vim-buffet` also provides some
 handy commands to manipulate the buffers:
 
-* `Bw[!]` -  wipe the current buffer without closing the window. If is has unsaved
+* `Bw[!]` -  wipe the current buffer without closing the window. If it has unsaved
   changes, an error will be shown, and the buffer will stay open. To ignore any
   changes and forcibly wipe the buffer, use `Bw!`.
 * `Bonly[!]` - wipe all the buffers but the current one. If there are any buffers
