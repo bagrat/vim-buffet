@@ -141,7 +141,7 @@ tabline works and looks like.
 | `g:buffet_separator` | `''` | The character to be used for separating items in the tabline |
 | `g:buffet_show_index` | `0` | Set to `1`, show index before each buffer name. Index is useful for switching between buffers quickly |
 | `g:buffet_max_plug` | `10` | The maximum number of `<Plug>BuffetSwitch` provided. Mapping will be disabled if the option is set to `0` |
-| `g:buffet_use_devicons` | `1` | If set to `1` and [`vim-devicons`](https://github.com/ryanoasis/vim-devicons) plugin is installed, show file type icons for each buffer in the tabline. If the `vim-devicons` plugin is not present, the option will automatically default to `0` (*Note: you need to have `vim-devicons` loaded before `vim-buffet` in order to make this work*) |
+| `g:buffet_use_devicons` | `1` | If set to `1` and either [`vim-devicons`](https://github.com/ryanoasis/vim-devicons) or [`nerdfont.vim`](https://github.com/lambdalisue/nerdfont.vim) plugin is installed, show file type icons for each buffer in the tabline. If neither plugin is present, the option will automatically default to `0`. |
 | `g:buffet_tab_icon` | `'#'` | The character to be used as an icon for the tab items in the tabline |
 | `g:buffet_new_buffer_name` | `'*'` | The character to be shown as the name of a new buffer |
 | `g:buffet_modified_icon` | `'+'` | The character to be shown by the name of a modified buffer |
