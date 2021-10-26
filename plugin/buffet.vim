@@ -31,16 +31,6 @@ let g:buffet_show_index = get(g:, "buffet_show_index", 0)
 
 let g:buffet_max_plug = get(g:, "buffet_max_plug", 10)
 
-if get(g:, "buffet_use_devicons", 1)
-    if !exists("*WebDevIconsGetFileTypeSymbol")
-        let g:buffet_use_devicons = 0
-    else
-        let g:buffet_use_devicons = 1
-    endif
-else
-    let g:buffet_use_devicons = 0
-endif
-
 if !exists("g:buffet_modified_icon")
     let g:buffet_modified_icon = "+"
 endif

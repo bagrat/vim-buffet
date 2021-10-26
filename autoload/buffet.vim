@@ -269,7 +269,11 @@ function! s:Render()
     let trunc_len = left_trunc_len + right_trunc_len
 
     let capacity = &columns - tabs_len - trunc_len - 5
-    let buffer_padding = 1 + (g:buffet_use_devicons ? 1+1 : 0) + 1 + sep_len
+
+    let devicon_func = buffet#get_devicon_func()
+    let use_devicon = !empty(devicon_func)
+
+    let buffer_padding = 1 + (use_devicon ? 1+1 : 0) + 1 + sep_len
 
     let elements = s:GetAllElements(capacity, buffer_padding)
 
@@ -293,8 +297,8 @@ function! s:Render()
         endif
 
         let icon = ""
-        if g:buffet_use_devicons && s:IsBufferElement(elem)
-            let icon = " " . WebDevIconsGetFileTypeSymbol(elem.value)
+        if use_devicon && s:IsBufferElement(elem)
+            let icon = " " . call(devicon_func, [elem.value])
         elseif elem.type == "Tab"
             let icon = " " . g:buffet_tab_icon
         endif
@@ -429,4 +433,20 @@ function! buffet#bonly(bang, buffer)
 
         call buffet#bwipe(a:bang, b)
     endfor
+endfunction
+
+function! buffet#get_devicon_func()
+    if !exists("g:buffet_devicon_func")
+        if !get(g:, "buffet_use_devicons", 1)
+            let devicon_func = ""
+        elseif exists("*WebDevIconsGetFileTypeSymbol")
+            let devicon_func = "WebDevIconsGetFileTypeSymbol"
+        elseif exists("*nerdfont#find")
+            let devicon_func = "nerdfont#find"
+        else
+            let devicon_func = ""
+        endif
+        let g:buffet_devicon_func = devicon_func
+    endif
+    return g:buffet_devicon_func
 endfunction
