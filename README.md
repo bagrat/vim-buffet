@@ -121,7 +121,11 @@ nmap <leader>6 <Plug>BuffetSwitch(6)
 nmap <leader>7 <Plug>BuffetSwitch(7)
 nmap <leader>8 <Plug>BuffetSwitch(8)
 nmap <leader>9 <Plug>BuffetSwitch(9)
-nmap <leader>0 <Plug>BuffetSwitch(10)
+nmap <leader>0 <Plug>BuffetSwitch(0) " to the last one
+nmap <leader>] <Plug>BuffetNext
+nmap <leader>[ <Plug>BuffetPrev
+nmap <leader><Left> <Plug>BuffetMoveLeft
+nmap <leader><Right> <Plug>BuffetMoveRight
 ```
 
 This will allow you to switch between buffers 1 - 10. You can get more `<Plug>`

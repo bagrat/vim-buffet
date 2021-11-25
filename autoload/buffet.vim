@@ -353,13 +353,45 @@ endfunction
 function! buffet#bswitch(index)
     let i = str2nr(a:index) - 1
     if i < 0 || i > len(s:buffer_ids) - 1
-        echohl ErrorMsg
-        echom "Invalid buffer index"
-        echohl None
+        let buffer_id = s:buffer_ids[len(s:buffer_ids)-1]
+    else
+        let buffer_id = s:buffer_ids[i]
+    endif
+    execute 'silent buffer ' . buffer_id
+endfunction
+
+function! buffet#moveLeft()
+    let cIdx = index(s:buffer_ids, s:last_current_buffer_id)
+    let idx = str2nr(cIdx)
+    if idx <= 0
         return
     endif
-    let buffer_id = s:buffer_ids[i]
-    execute 'silent buffer ' . buffer_id
+    let tmp = s:buffer_ids[idx]
+    let s:buffer_ids[idx] = s:buffer_ids[idx-1]
+    let s:buffer_ids[idx-1] = tmp
+    return s:Render()
+endfunction
+
+function! buffet#moveRight()
+    let cIdx = index(s:buffer_ids, s:last_current_buffer_id)
+    if cIdx > len(s:buffer_ids)-2
+        return
+    endif
+    let tmp = s:buffer_ids[cIdx]
+    let s:buffer_ids[cIdx] = s:buffer_ids[cIdx+1]
+    let s:buffer_ids[cIdx+1] = tmp
+    return s:Render()
+endfunction
+
+function! buffet#bnext()
+    let current_buffer_id_i = index(s:buffer_ids, s:last_current_buffer_id)
+    let next_buffer_id_i = (current_buffer_id_i+2)%len(s:buffer_ids)
+    call buffet#bswitch(next_buffer_id_i)
+endfunction
+
+function! buffet#bprev()
+    let current_buffer_id_i = index(s:buffer_ids, s:last_current_buffer_id)
+    call buffet#bswitch(current_buffer_id_i)
 endfunction
 
 " inspired and based on https://vim.fandom.com/wiki/Deleting_a_buffer_without_closing_the_window

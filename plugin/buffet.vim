@@ -241,9 +241,14 @@ endfunction
 
 let g:buffet_bwipe_filters = ["buffet#bwipe_nerdtree_filter"]
 
-for s:n in range(1, g:buffet_max_plug)
+for s:n in range(0, g:buffet_max_plug)
     execute printf("noremap <silent> <Plug>BuffetSwitch(%d) :call buffet#bswitch(%d)<cr>", s:n, s:n)
 endfor
+
+noremap <silent> <Plug>BuffetNext :call buffet#bnext()<cr>
+noremap <silent> <Plug>BuffetPrev :call buffet#bprev()<cr>
+noremap <silent> <Plug>BuffetMoveLeft :call buffet#moveLeft()<cr>
+noremap <silent> <Plug>BuffetMoveRight :call buffet#moveRight()<cr>
 
 command! -bang -complete=buffer -nargs=? Bw call buffet#bwipe(<q-bang>, <q-args>)
 command! -bang -complete=buffer -nargs=? Bonly call buffet#bonly(<q-bang>, <q-args>)
