@@ -245,6 +245,8 @@ endfor
 
 noremap <silent> <Plug>BuffetNext :call buffet#bnext()<cr>
 noremap <silent> <Plug>BuffetPrev :call buffet#bprev()<cr>
+noremap <silent> <Plug>BuffetMoveLeft :call buffet#moveLeft()<cr>
+noremap <silent> <Plug>BuffetMoveRight :call buffet#moveRight()<cr>
 
 command! -bang -complete=buffer -nargs=? Bw call buffet#bwipe(<q-bang>, <q-args>)
 command! -bang -complete=buffer -nargs=? Bonly call buffet#bonly(<q-bang>, <q-args>)

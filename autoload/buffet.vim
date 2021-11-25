@@ -360,6 +360,29 @@ function! buffet#bswitch(index)
     execute 'silent buffer ' . buffer_id
 endfunction
 
+function! buffet#moveLeft()
+    let cIdx = index(s:buffer_ids, s:last_current_buffer_id)
+    let idx = str2nr(cIdx)
+    if idx <= 0
+        return
+    endif
+    let tmp = s:buffer_ids[idx]
+    let s:buffer_ids[idx] = s:buffer_ids[idx-1]
+    let s:buffer_ids[idx-1] = tmp
+    return s:Render()
+endfunction
+
+function! buffet#moveRight()
+    let cIdx = index(s:buffer_ids, s:last_current_buffer_id)
+    if cIdx > len(s:buffer_ids)-2
+        return
+    endif
+    let tmp = s:buffer_ids[cIdx]
+    let s:buffer_ids[cIdx] = s:buffer_ids[cIdx+1]
+    let s:buffer_ids[cIdx+1] = tmp
+    return s:Render()
+endfunction
+
 function! buffet#bnext()
     let current_buffer_id_i = index(s:buffer_ids, s:last_current_buffer_id)
     let next_buffer_id_i = (current_buffer_id_i+2)%len(s:buffer_ids)
